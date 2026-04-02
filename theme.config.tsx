@@ -2,15 +2,22 @@ import React from 'react'
 import { DocsThemeConfig, useConfig } from 'nextra-theme-docs'
 import { useRouter } from 'next/router'
 import Image from 'next/image'
+import { ThemeToggle } from './components/ThemeToggle'
 
 const OG_IMAGE = 'https://onhyewqcjmwup3zj.public.blob.vercel-storage.com/opengraph.png'
 const SITE_URL = 'https://mekongtunnel.dev'
 
 const config: DocsThemeConfig = {
   logo: (
-    <span className="flex items-center gap-2 font-bold text-lg tracking-tight">
-      <Image src="/MekongNoBG.png" alt="MekongTunnel" width={28} height={28} />
-      <span>MekongTunnel</span>
+    <span className="flex items-center gap-2.5 font-bold tracking-tight">
+      <Image
+        src="/MekongNoBG.png"
+        alt="MekongTunnel"
+        width={36}
+        height={36}
+        className="shrink-0"
+      />
+      <span className="text-base sm:text-lg">MekongTunnel</span>
     </span>
   ),
 
@@ -29,7 +36,7 @@ const config: DocsThemeConfig = {
   },
 
   head: () => {
-    const { frontMatter, title } = useConfig()
+    const { frontMatter } = useConfig()
     const { asPath } = useRouter()
 
     const pageTitle = frontMatter.title
@@ -44,13 +51,8 @@ const config: DocsThemeConfig = {
       <>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content={pageDescription} />
-        <meta
-          name="keywords"
-          content="ssh tunnel, localhost tunnel, ngrok alternative, open source, go"
-        />
+        <meta name="keywords" content="ssh tunnel, localhost tunnel, ngrok alternative, open source, go" />
         <meta name="author" content="Ing Muyleang" />
-
-        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_US" />
         <meta property="og:url" content={canonicalUrl} />
@@ -60,38 +62,37 @@ const config: DocsThemeConfig = {
         <meta property="og:image" content={OG_IMAGE} />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta
-          property="og:image:alt"
-          content="MekongTunnel — Expose localhost in one command"
-        />
-
-        {/* Twitter Card */}
+        <meta property="og:image:alt" content="MekongTunnel — Expose localhost in one command" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={pageTitle} />
         <meta name="twitter:description" content={pageDescription} />
         <meta name="twitter:image" content={OG_IMAGE} />
-
-        {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.png" type="image/png" />
-
-        {/* Canonical */}
         <link rel="canonical" href={canonicalUrl} />
       </>
     )
   },
 
-  // Top navigation
+  // Navbar — theme toggle + website link side by side
   navbar: {
     extraContent: (
-      <a
-        href={SITE_URL}
-        target="_blank"
-        rel="noreferrer"
-        className="hidden sm:inline-flex nx-text-sm nx-font-medium nx-text-gray-600 dark:nx-text-gray-400 hover:nx-text-gray-900 dark:hover:nx-text-white nx-transition-colors"
-      >
-        mekongtunnel.dev ↗
-      </a>
+      <div className="flex items-center gap-1">
+        <ThemeToggle />
+        <a
+          href={SITE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className="hidden sm:inline-flex h-9 items-center px-3 rounded-lg text-sm font-medium
+                     text-gray-600 dark:text-gray-400
+                     hover:text-gray-900 dark:hover:text-white
+                     hover:bg-gray-100 dark:hover:bg-gray-800
+                     border border-transparent hover:border-gray-200 dark:hover:border-gray-700
+                     transition-all duration-150"
+        >
+          mekongtunnel.dev ↗
+        </a>
+      </div>
     ),
   },
 
@@ -129,23 +130,19 @@ const config: DocsThemeConfig = {
     ),
   },
 
-  // Search
   search: {
     placeholder: 'Search docs...',
   },
 
-  // Feedback
   feedback: {
     content: 'Was this page helpful?',
     labels: 'feedback',
   },
 
-  // Edit link
   editLink: {
     text: 'Edit this page on GitHub',
   },
 
-  // Footer
   footer: {
     text: (
       <div className="nx-flex nx-flex-col sm:nx-flex-row nx-items-start sm:nx-items-center nx-justify-between nx-gap-4 nx-w-full">
