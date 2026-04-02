@@ -1,0 +1,272 @@
+---
+title: CLI Reference
+description: All commands, flags, and usage examples for the mekong CLI.
+---
+
+# CLI Reference
+
+## Usage
+
+```
+mekong [flags] <port>
+mekong -p <port> [flags]
+mekong login
+mekong logout
+mekong whoami
+mekong status [port]
+mekong logs [port]
+mekong logs -f [port]
+mekong stop <port>
+mekong stop --all
+mekong update
+mekong version
+```
+
+The local port can be given as a positional argument or via `-p` / `--port`. A token for reserved subdomains is loaded automatically from `~/.mekong/config.json` after `mekong login`, or can be supplied via `--token` / `MEKONG_TOKEN`.
+
+```bash
+mekong 3000                          # anonymous — random subdomain
+mekong login && mekong 3000          # login once → reserved subdomain every time
+mekong --token mkt_xxx 3000          # one-shot token override
+```
+
+---
+
+## Commands
+
+### Tunnel
+
+| Command | Description |
+|---------|-------------|
+| `mekong <port>` | Expose `localhost:<port>` — auto-uses saved token |
+| `mekong -d <port>` | Run tunnel in background / daemon mode |
+| `mekong <port1> <port2>` | Expose multiple ports simultaneously |
+
+### Auth
+
+| Command | Description |
+|---------|-------------|
+| `mekong login` | Authenticate via browser — saves token to `~/.mekong/config.json` |
+| `mekong logout` | Remove saved credentials |
+| `mekong whoami` | Show currently logged-in account and token prefix |
+
+### Management
+
+| Command | Description |
+|---------|-------------|
+| `mekong status` | Show all your active tunnels |
+| `mekong status <port>` | Show tunnel for a specific port |
+| `mekong logs` | Print daemon logs for all tunnels |
+| `mekong logs -f` | Follow daemon logs live |
+| `mekong logs <port>` | Print daemon logs filtered by local port |
+| `mekong logs -f <port>` | Follow daemon logs live for one port |
+| `mekong stop <port>` | Stop one running background tunnel |
+| `mekong stop --all` | Stop all running background tunnels |
+| `mekong update` | Auto-update to the latest release |
+| `mekong version` | Show installed version |
+
+---
+
+## Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-p`, `--port <n>` | _(positional)_ | Local port to expose |
+| `--token <tok>` | _(saved login / env)_ | API token for reserved subdomain |
+| `-d` | `false` | Run tunnel in background daemon mode |
+| `-e`, `--expire <duration>` | server default | Requested tunnel lifetime / idle timeout |
+| `--no-qr` | `false` | Disable QR code display |
+| `--no-clipboard` | `false` | Disable auto clipboard copy |
+| `--no-reconnect` | `false` | Exit on disconnect instead of reconnecting |
+
+### Token resolution order
+
+1. `--token` flag
+2. `MEKONG_TOKEN` environment variable
+3. `~/.mekong/config.json` (written by `mekong login`)
+4. _(none — anonymous mode, random subdomain)_
+
+---
+
+## Examples
+
+```bash
+# Anonymous — gets a random subdomain every time
+mekong 3000
+
+# Login once, then always get your reserved subdomain
+mekong login
+mekong 3000                            # → https://myapp.mekongtunnel.dev
+
+# One-shot token without logging in
+mekong --token mkt_xxxxxxxxxxxx 3000
+
+# Via environment variable (great for CI/CD)
+MEKONG_TOKEN=mkt_xxx mekong 3000
+
+# Auth management
+mekong whoami                          # show logged-in account
+mekong logout                          # remove saved credentials
+
+# Expiry
+mekong 3000 --expire 1w
+mekong 3000 -e 48h
+
+# Daemon mode
+mekong -d 3000 --expire 24h
+mekong logs 3000
+mekong logs -f 3000
+mekong status
+mekong stop 3000
+
+# Multiple ports
+mekong 3000 8080
+
+# Self-update
+mekong update
+mekong version
+```
+
+---
+
+## `mekong login`
+
+Opens `mekongtunnel.dev/cli-auth` in your browser. After you approve, the CLI saves your token to `~/.mekong/config.json` and all future tunnels automatically use your reserved subdomain.
+
+```bash
+mekong login
+```
+
+```
+  Open this URL to log in:
+  https://mekongtunnel.dev/cli-auth?session=xxxxxxxx
+
+  Waiting for authorization.....
+  ✔  Logged in as you@example.com
+
+  Your tunnels will now use your reserved subdomain.
+  Run: mekong 3000
+```
+
+---
+
+## `mekong logout`
+
+Removes `~/.mekong/config.json`. Subsequent tunnel runs revert to anonymous mode (random subdomains).
+
+```bash
+mekong logout
+# ✔  Logged out (was: you@example.com)
+```
+
+---
+
+## `mekong whoami`
+
+Shows your current account, plan, and the first few characters of your token.
+
+```bash
+mekong whoami
+```
+
+```
+  ─────────────────────────────────────────
+  Name    Ing Muyleang
+  Email   you@example.com
+  Plan    pro
+  Token   mkt_xxxxxxxx****
+  ─────────────────────────────────────────
+```
+
+---
+
+## Expiry values
+
+Accepted formats:
+
+| Value | Duration |
+|-------|----------|
+| `30m` | 30 minutes |
+| `1h`, `6h`, `24h`, `48h` | hours |
+| `1d`, `2d` | days |
+| `1w`, `2week` | weeks |
+| `48` | bare number = hours |
+
+When expiry is set, the tunnel banner shows the expiry time and `mekong status` reflects it. Idle timeout follows the requested expiry.
+
+---
+
+## Daemon Mode
+
+```bash
+mekong -d 3000 --expire 24h
+```
+
+```
+✔  mekong running in background
+   PID      48291
+   Logs     mekong logs 3000
+   Follow   mekong logs -f 3000
+   Status   mekong status 3000
+   Stop     mekong stop 3000
+   Stop all mekong stop --all
+```
+
+- Terminal is freed immediately
+- All output goes to `~/.mekong/mekong.log`
+- State is saved to `~/.mekong/` (readable only by your user)
+- QR and clipboard are disabled automatically in daemon mode
+- Token is passed through to the daemon process — your reserved subdomain works in daemon mode too
+
+---
+
+## Status
+
+```bash
+mekong status
+```
+
+```
+Active tunnels
+─────────────────────────────────────────────────────
+Subdomain  myapp
+URL        https://myapp.mekongtunnel.dev
+Local      localhost:3000
+PID        48291
+Expires    Mar 20, 2026 at 15:04 UTC (or 1w idle)
+Uptime     14m32s
+─────────────────────────────────────────────────────
+```
+
+---
+
+## Auto-reconnect
+
+The CLI reconnects automatically with exponential backoff (2 s → 4 s → … up to 60 s). If your IP is blocked, it stops immediately to avoid making the block worse.
+
+Disable with `--no-reconnect`.
+
+---
+
+## Raw SSH
+
+Use `ssh` directly if you prefer not to install the binary:
+
+```bash
+# Anonymous
+ssh -t -R 80:localhost:3000 mekongtunnel.dev
+
+# With token (reserved subdomain)
+ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
+    -t -R 80:localhost:3000 mekongtunnel.dev
+
+# With expiry
+ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 mekongtunnel.dev
+
+# Both at once
+ssh -o SendEnv="MEKONG_API_TOKEN MEKONG_EXPIRE" \
+    -o SetEnv="MEKONG_API_TOKEN=mkt_xxx MEKONG_EXPIRE=48h" \
+    -t -R 80:localhost:3000 mekongtunnel.dev
+```
+
+> The `-t` flag is required. Without it the server cannot display the URL.

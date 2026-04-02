@@ -1,0 +1,44 @@
+---
+title: MekongTunnel Documentation
+---
+
+import { Cards, Card } from 'nextra/components'
+import { Rocket, Terminal, Settings, Code2, Shield, BookOpen } from 'lucide-react'
+
+# MekongTunnel Documentation
+
+**MekongTunnel** is a self-hosted SSH tunnel server written in Go. It works like ngrok or Cloudflare Tunnel — but **you control it**.
+
+Run one command and expose any local port to the internet with a public HTTPS URL.
+
+```bash
+mekong 3000
+```
+
+You get a unique public URL instantly:
+
+```
+https://happy-tiger-a1b2.mekongtunnel.dev
+```
+
+## Get Started
+
+<Cards>
+  <Card icon={<Rocket />} title="Getting Started" href="/docs/getting-started" />
+  <Card icon={<Terminal />} title="Installation" href="/docs/installation" />
+  <Card icon={<Settings />} title="Configuration" href="/docs/configuration" />
+  <Card icon={<Code2 />} title="CLI Reference" href="/docs/cli-reference" />
+  <Card icon={<Shield />} title="Self-Hosting" href="/docs/self-hosting" />
+  <Card icon={<BookOpen />} title="FAQ" href="/docs/faq" />
+</Cards>
+
+## Frameworks
+
+<Cards>
+  <Card title="Node.js / Express" href="/docs/node/express" />
+  <Card title="Next.js" href="/docs/node/nextjs" />
+  <Card title="Python / FastAPI" href="/docs/python/fastapi" />
+  <Card title="Python / Flask" href="/docs/python/flask" />
+  <Card title="Vite" href="/docs/node/vite" />
+  <Card title="SvelteKit" href="/docs/node/sveltekit" />
+</Cards>

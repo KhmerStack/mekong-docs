@@ -1,0 +1,187 @@
+---
+title: Authentication & Tokens
+description: Free anonymous tunnels, API tokens, reserved subdomains, and the mekong login flow.
+---
+
+# Authentication & Tokens
+
+MekongTunnel works in two modes. You pick the one that fits your workflow — no account is required for basic use.
+
+---
+
+## Two modes at a glance
+
+| | Free / Anonymous | With API Token |
+|---|---|---|
+| **Account needed** | No | Yes (free account) |
+| **Subdomain** | Random every time | Your reserved subdomain |
+| **Example URL** | `happy-tiger-a1b2.mekongtunnel.dev` | `myapp.mekongtunnel.dev` |
+| **Tunnel lifetime** | Server default | Server default (same limits) |
+| **npm / Python SDK** | ✔ | ✔ |
+| **VS Code extension** | ✔ | ✔ |
+
+> **Both modes are free.** An API token just lets you keep the same subdomain across sessions.
+
+---
+
+## Getting an API token
+
+1. Sign in at [mekongtunnel.dev](https://mekongtunnel.dev)
+2. Go to **Dashboard → API Tokens**
+3. Click **New token**, give it a name, copy the value
+
+Keep the token safe — it is shown only once.
+
+---
+
+## Option 1 — `mekong login` (recommended)
+
+The easiest way. Opens your browser, you approve once, and the token is saved automatically to `~/.mekong/config.json`.
+
+```bash
+mekong login
+```
+
+```
+  Open this URL to log in:
+  https://mekongtunnel.dev/cli-auth?session=xxxx
+
+  Waiting for authorization.....
+  ✔  Logged in as you@example.com
+
+  Your tunnels will now use your reserved subdomain.
+  Run: mekong 3000
+```
+
+From that point on, every `mekong 3000` automatically uses your reserved subdomain — no extra flags needed.
+
+```bash
+mekong whoami      # show logged-in account
+mekong logout      # remove saved credentials
+```
+
+---
+
+## Option 2 — `--token` flag
+
+Pass your token directly on the command line:
+
+```bash
+mekong --token mkt_xxxxxxxxxxxx 3000
+```
+
+---
+
+## Option 3 — `MEKONG_TOKEN` environment variable
+
+Set the token once in your shell profile and never think about it again:
+
+```bash
+export MEKONG_TOKEN=mkt_xxxxxxxxxxxx
+mekong 3000
+```
+
+Great for CI/CD pipelines and Docker containers.
+
+---
+
+## Token resolution order
+
+The CLI checks for a token in this order, using the first one it finds:
+
+1. `--token` flag
+2. `MEKONG_TOKEN` environment variable
+3. `~/.mekong/config.json` (written by `mekong login`)
+4. _(none — runs anonymously with a random subdomain)_
+
+---
+
+## Reserved subdomains
+
+A reserved subdomain is tied to your account and stays the same every time you connect.
+
+To create one:
+1. Go to **Dashboard → Subdomains**
+2. Click **Reserve subdomain**
+3. Pick a name — e.g. `myapp`
+4. Your tunnel URL becomes `https://myapp.mekongtunnel.dev`
+
+When you run `mekong login` (or pass a token), the server looks up your first reserved subdomain and assigns it instead of generating a random one.
+
+---
+
+## Raw SSH with a token
+
+If you use `ssh` directly instead of the mekong CLI, pass the token as an environment variable via `SetEnv`:
+
+```bash
+ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
+    -t -R 80:localhost:3000 mekongtunnel.dev
+```
+
+---
+
+## npm / Node.js SDK
+
+```js
+const mekong = require('mekong-cli/sdk')   // or: require('mekong-cli')
+
+// Uses saved login token automatically
+const { url, stop } = await mekong.expose(3000)
+console.log('Public:', url)
+
+// Or pass a token explicitly
+const { url } = await mekong.expose(3000, { token: 'mkt_xxx' })
+
+// Auth helpers
+await mekong.login()     // browser flow — saves ~/.mekong/config.json
+mekong.logout()          // remove saved token
+const info = mekong.whoami()
+const tok  = mekong.getToken()   // reads from env / saved config
+```
+
+---
+
+## Python SDK
+
+```python
+import mekong_tunnel as mekong
+
+# Uses saved login token automatically
+tunnel = mekong.expose(8000)
+print(tunnel.url)   # https://myapp.mekongtunnel.dev
+tunnel.stop()
+
+# Or pass a token explicitly
+tunnel = mekong.expose(8000, token='mkt_xxx')
+
+# Context manager
+with mekong.expose(8000) as t:
+    print(t.url)    # tunnel is live inside the block
+
+# Auth helpers
+mekong.login()      # browser flow — saves ~/.mekong/config.json
+mekong.logout()     # remove saved token
+info = mekong.whoami()
+tok  = mekong.get_token()
+```
+
+---
+
+## VS Code extension
+
+The extension automatically reads your token in this order:
+
+1. `mekong.apiToken` VS Code setting
+2. `MEKONG_TOKEN` environment variable
+3. `~/.mekong/config.json` (written by `mekong login`)
+
+The simplest setup: run `mekong login` in your terminal once, then click **Start Tunnel** in VS Code — it picks up your reserved subdomain automatically.
+
+To set the token in settings instead: open VS Code Settings (`Ctrl+,`), search for `mekong`, and paste your token into **Mekong Tunnel → API Token**.
+
+---
+
+## Revoking a token
+
+Go to **Dashboard → API Tokens**, find the token, and click **Revoke**. The token stops working immediately.

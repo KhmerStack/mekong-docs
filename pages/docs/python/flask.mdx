@@ -1,0 +1,159 @@
+---
+title: Flask
+description: Expose your Flask app with a public tunnel URL in one command
+---
+
+Use `mekong-flask` to run your Flask development server and expose it publicly — perfect for testing webhooks, sharing work-in-progress, and mobile device testing.
+
+## Quick Start
+
+```bash
+pip install mekong-tunnel flask
+```
+
+```bash
+# Same as: flask run
+mekong-flask
+```
+
+Or with an explicit app module:
+
+```bash
+mekong-flask --app myapp:app
+```
+
+A public URL like `https://swift-river-b3c4d5e6.mekongtunnel.dev` is printed immediately.
+
+## Open in Browser
+
+```bash
+mekong-flask --domain          # Opens tunnel URL in browser
+mekong-flask --local           # Opens http://localhost:5000 in browser
+```
+
+## Custom Port
+
+```bash
+mekong-flask --port 5001 --app myapp:app
+```
+
+## Full Example
+
+```python
+# app.py
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return jsonify({"message": "Hello from Flask via MekongTunnel!"})
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.json
+    print("Received:", data)
+    return jsonify({"status": "received"})
+```
+
+```bash
+FLASK_APP=app.py mekong-flask --debug --domain
+```
+
+## Passing Flask Arguments
+
+`mekong-flask` wraps `flask run`, so all flask CLI arguments are supported:
+
+```bash
+mekong-flask \
+  --app app:create_app \
+  --debug \
+  --port 5000 \
+  --host 0.0.0.0 \
+  --reload
+```
+
+## With Flask Application Factory
+
+```python
+# myapp/__init__.py
+from flask import Flask
+
+def create_app():
+    app = Flask(__name__)
+    # ... register blueprints, etc.
+    return app
+```
+
+```bash
+mekong-flask --app myapp:create_app --debug --domain
+```
+
+## Flask Blueprints + Webhooks
+
+```python
+from flask import Blueprint, request, abort
+import hmac, hashlib, os
+
+webhooks = Blueprint("webhooks", __name__, url_prefix="/webhooks")
+
+@webhooks.route("/stripe", methods=["POST"])
+def stripe_webhook():
+    payload = request.data
+    sig = request.headers.get("Stripe-Signature")
+    # Verify with stripe.Webhook.construct_event(...)
+    return "", 200
+```
+
+```bash
+mekong-flask --app myapp:create_app --debug --domain
+# → Paste https://your-tunnel.mekongtunnel.dev/webhooks/stripe to Stripe dashboard
+```
+
+## Programmatic API
+
+```python
+from mekong_tunnel import start_tunnel
+from myapp import create_app
+
+tunnel = start_tunnel(port=5000)
+print("Share this URL:", tunnel.url)
+
+app = create_app()
+app.run(port=5000, debug=True)
+```
+
+## Flask + CORS
+
+If your frontend uses the tunnel URL as an API origin:
+
+```bash
+pip install flask-cors
+```
+
+```python
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)  # Allow all origins, or specify: CORS(app, origins=["https://*.mekongtunnel.dev"])
+```
+
+## Environment Variables
+
+```bash
+MEKONG_TOKEN=your_token FLASK_APP=app.py mekong-flask --debug
+```
+
+Or in `.flaskenv`:
+
+```env
+FLASK_APP=app.py
+FLASK_DEBUG=1
+MEKONG_TOKEN=your_token
+```
+
+## Notes
+
+- Flask's built-in reloader works normally with the tunnel
+- The `debugger` PIN is shown in the terminal as usual
+- For production, use `mekong-gunicorn` instead of `mekong-flask` (Flask's dev server is not production-safe)

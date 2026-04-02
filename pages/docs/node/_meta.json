@@ -1,0 +1,9 @@
+{
+  "express": "Express",
+  "nextjs": "Next.js",
+  "vite": "Vite",
+  "remix": "Remix",
+  "sveltekit": "SvelteKit",
+  "nuxt": "Nuxt",
+  "astro": "Astro"
+}

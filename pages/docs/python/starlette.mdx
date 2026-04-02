@@ -1,0 +1,193 @@
+---
+title: Starlette / Granian
+description: Lightweight ASGI frameworks with MekongTunnel
+---
+
+## Starlette
+
+[Starlette](https://www.starlette.io/) is a lightweight ASGI framework — the foundation that FastAPI is built on. Use it when you want maximum control without the full FastAPI layer.
+
+### Install
+
+```bash
+pip install mekong-tunnel starlette uvicorn
+```
+
+### Usage
+
+Since Starlette apps are standard ASGI apps, use `mekong-uvicorn`:
+
+```bash
+mekong-uvicorn myapp:app --reload --domain
+```
+
+### Example App
+
+```python
+# myapp.py
+from starlette.applications import Starlette
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+
+async def homepage(request):
+    return JSONResponse({"message": "Hello from Starlette!"})
+
+async def health(request):
+    return JSONResponse({"status": "ok"})
+
+app = Starlette(routes=[
+    Route("/", homepage),
+    Route("/health", health),
+])
+```
+
+```bash
+mekong-uvicorn myapp:app --reload --domain
+```
+
+### Starlette Middleware
+
+```python
+from starlette.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+### WebSockets with Starlette
+
+WebSocket connections work through the MekongTunnel proxy:
+
+```python
+from starlette.websockets import WebSocket
+
+async def ws_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        data = await websocket.receive_text()
+        await websocket.send_text(f"Echo: {data}")
+
+app = Starlette(routes=[
+    WebSocketRoute("/ws", ws_endpoint),
+])
+```
+
+```bash
+mekong-uvicorn myapp:app --reload --domain
+# Connect: wss://your-tunnel.mekongtunnel.dev/ws
+```
+
+---
+
+## Granian
+
+[Granian](https://github.com/emmett-framework/granian) is a modern, high-performance Rust-based ASGI/RSGI server — an alternative to uvicorn and gunicorn with excellent performance.
+
+### Install
+
+```bash
+pip install mekong-tunnel granian
+```
+
+### Usage
+
+```bash
+# Same as: granian --interface asgi myapp:app
+mekong-granian myapp:app --interface asgi
+
+# With options
+mekong-granian myapp:app \
+  --interface asgi \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --workers 2 \
+  --domain
+```
+
+### RSGI Mode (Granian-native)
+
+```bash
+mekong-granian myapp:app --interface rsgi --domain
+```
+
+### Example: FastAPI with Granian
+
+```bash
+pip install fastapi granian mekong-tunnel
+
+mekong-granian main:app --interface asgi --reload --domain
+```
+
+### All Granian Options Pass Through
+
+```bash
+mekong-granian myapp:app \
+  --interface asgi \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --workers 4 \
+  --threads 2 \
+  --http 2 \
+  --reload \
+  --domain
+```
+
+---
+
+## Hypercorn
+
+[Hypercorn](https://hypercorn.readthedocs.io/) is an ASGI server that supports HTTP/1, HTTP/2, and HTTP/3 (QUIC).
+
+### Install
+
+```bash
+pip install mekong-tunnel hypercorn
+```
+
+### Usage
+
+```bash
+# Same as: hypercorn myapp:app
+mekong-hypercorn myapp:app
+
+# With options
+mekong-hypercorn myapp:app \
+  --bind 0.0.0.0:8000 \
+  --workers 2 \
+  --domain
+```
+
+### HTTP/2 with Hypercorn
+
+```bash
+mekong-hypercorn myapp:app \
+  --bind 0.0.0.0:8000 \
+  --keyfile key.pem \
+  --certfile cert.pem \
+  --domain
+```
+
+---
+
+## Server Comparison
+
+| Server | Type | Language | Best For |
+|--------|------|----------|---------|
+| Uvicorn | ASGI | Python | FastAPI, Starlette, general ASGI |
+| Gunicorn | WSGI | Python | Flask, Django, multi-worker |
+| Granian | ASGI/RSGI | Rust | High performance, low memory |
+| Hypercorn | ASGI | Python | HTTP/2, HTTP/3 support |
+| Daphne | ASGI | Python | Django Channels, WebSockets |
+
+All are fully supported by the `mekong-tunnel` package.
+
+## Environment Variables
+
+```bash
+MEKONG_TOKEN=your_token mekong-granian myapp:app --interface asgi
+MEKONG_TOKEN=your_token mekong-hypercorn myapp:app --bind 0.0.0.0:8000
+```

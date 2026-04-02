@@ -1,0 +1,170 @@
+---
+title: VS Code Extension
+description: Expose your local server to the internet directly from VS Code — with reserved subdomain support.
+---
+
+# VS Code Extension
+
+The **MekongTunnel VS Code Extension** lets you start, stop, and manage tunnels without leaving your editor. It automatically uses your reserved subdomain if you're logged in.
+
+**Marketplace:** [KhmerStack.mekong-tunnel](https://marketplace.visualstudio.com/items?itemName=KhmerStack.mekong-tunnel)
+
+---
+
+## Installation
+
+1. Open VS Code
+2. Press `Ctrl+P` / `Cmd+P`
+3. Paste: `ext install KhmerStack.mekong-tunnel`
+4. Press **Enter**
+
+Or search **"Mekong Tunnel"** in the Extensions panel (`Ctrl+Shift+X`).
+
+---
+
+## Quick Start
+
+1. Click the **Mekong** icon in the Activity Bar (left sidebar)
+2. You'll see the **Account panel** at the top — log in if you want a reserved subdomain
+3. Enter a port (e.g. `3000`) and click **Start Tunnel**
+4. Your public URL appears instantly — click to copy or open in browser
+
+---
+
+## Account panel (v1.5.0+)
+
+The sidebar now shows your login status at the top of the panel:
+
+- **Not logged in** — shows a **Login** button. Clicking it opens a `mekong login` terminal inside VS Code, which launches the browser device flow. Once you approve, the panel updates automatically.
+- **Logged in** — shows your email address, plan badge (Free / Pro / Team), and a **Logout** button.
+
+This means every tunnel you start while logged in will use your **reserved subdomain** — no extra configuration needed.
+
+```bash
+# Log in from the terminal if you prefer
+mekong login
+# → saved to ~/.mekong/config.json
+# → VS Code extension reads it automatically
+```
+
+---
+
+## Authentication
+
+The extension looks for a token in this order:
+
+1. **`mekong.apiToken`** VS Code setting (takes priority if set)
+2. **`MEKONG_TOKEN`** environment variable
+3. **`~/.mekong/config.json`** — written by `mekong login` in your terminal or the sidebar Login button
+
+**Recommended setup:** run `mekong login` once (terminal or sidebar). The extension picks it up automatically and your reserved subdomain is always used.
+
+To set a token directly in VS Code: open Settings (`Ctrl+,`), search `mekong`, and paste into **Mekong Tunnel → API Token**.
+
+Get a token: [Dashboard → API Tokens](/dashboard/tokens)
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| Account panel | Shows login status, email, plan — Login/Logout in one click |
+| One-click tunnel | Start/stop from the sidebar panel |
+| Reserved subdomain | Auto-uses your token from `mekong login` or settings |
+| Copy URL | Click to copy public URL to clipboard |
+| Open in browser | Open tunnel URL with one click |
+| Status bar | Shows active tunnel URL in the bottom status bar |
+| Live request log | See incoming HTTP request logs in the Output panel |
+| Live Server | Built-in static file server for HTML projects |
+| Live Server tunnel | Combine Live Server + public tunnel in one click |
+
+---
+
+## Configuration
+
+Open VS Code Settings (`Ctrl+,`) and search for `mekong`:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `mekong.apiToken` | `""` | API token for reserved subdomain |
+| `mekong.port` | _(auto)_ | Override the auto-detected port |
+| `mekong.expire` | `""` | Tunnel lifetime — e.g. `2h`, `1d`, `1w` |
+| `mekong.binaryPath` | _(auto)_ | Custom path to the mekong binary |
+| `mekong.showQr` | `false` | Show QR code in the Output panel |
+| `mekong.autoStart` | `false` | Start tunnel automatically when workspace opens |
+| `mekong.liveServerPort` | `5500` | Starting port for the built-in Live Server |
+
+---
+
+## Command Palette
+
+Press `Ctrl+Shift+P` / `Cmd+Shift+P` and search for:
+
+| Command | Description |
+|---------|-------------|
+| `Mekong: Start Tunnel` | Opens a port prompt and starts the tunnel |
+| `Mekong: Stop Tunnel` | Stops the active tunnel |
+| `Mekong: Copy Public URL` | Copies tunnel URL to clipboard |
+| `Mekong: Open Public URL in Browser` | Opens tunnel URL in browser |
+| `Mekong: Start Live Server` | Starts built-in Live Server |
+| `Mekong: Stop Live Server` | Stops Live Server |
+
+---
+
+## Live Server
+
+The extension includes a built-in static file server for HTML projects. Click **Start Live Server** in the panel, or right-click any HTML file → **Open with Mekong Live Server**.
+
+```
+HTML file → Live Server (port 5500) → mekong → public HTTPS URL
+```
+
+Click **Tunnel** in the notification to expose the Live Server publicly.
+
+---
+
+## Settings examples
+
+**`settings.json`:**
+
+```json
+{
+  "mekong.apiToken": "mkt_xxxxxxxxxxxx",
+  "mekong.expire":   "2h",
+  "mekong.showQr":   false,
+  "mekong.autoStart": false
+}
+```
+
+---
+
+## Changelog
+
+Current version: **v1.5.0**
+
+- Added account/login panel to sidebar with email, plan, and Login/Logout buttons
+- Updated to mekong v1.5.0 binaries
+- Improved binary detection (searches `~/bin`, `~/.local/bin`, and system PATH)
+
+See [GitHub Releases](https://github.com/MuyleangIng/MekongTunnel/releases) for the full changelog.
+
+---
+
+## Troubleshooting
+
+**Tunnel starts with a random subdomain instead of my reserved one**
+- Make sure you have run `mekong login` in your terminal or clicked **Login** in the sidebar
+- Check `mekong whoami` in your terminal to confirm you're logged in
+
+**"Failed to start tunnel" error**
+- Ensure the `mekong` binary is installed: [Installation](/docs/installation)
+- Check that your local server is running on the selected port
+- View details in **View → Output → Mekong Tunnel**
+
+**Extension not showing in sidebar**
+- Reload VS Code: `Ctrl+Shift+P` → "Developer: Reload Window"
+
+**Binary not found**
+- The extension searches `~/bin/mekong`, `~/.local/bin/mekong`, and `PATH` automatically
+- If you installed to a custom location, set `mekong.binaryPath` in settings

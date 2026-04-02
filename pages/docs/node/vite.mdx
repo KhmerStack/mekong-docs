@@ -1,0 +1,217 @@
+---
+title: Vite
+description: Expose Vite dev server for React, Vue, Svelte, Lit, and more
+---
+
+Vite is the default bundler/dev server for React (via `create-vite`), Vue 3, Svelte, Lit, Solid, Qwik, and more. All frameworks that use Vite share the same tunnel setup.
+
+## Quick Start
+
+```bash
+npm install -g mekong-cli
+mekong auth YOUR_TOKEN
+```
+
+```bash
+# Terminal 1
+npm run dev        # Starts Vite on http://localhost:5173
+
+# Terminal 2
+mekong 5173
+# → https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+Or in a single command:
+
+```bash
+npx concurrently "npm run dev" "mekong 5173"
+```
+
+## package.json Scripts
+
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "tunnel": "mekong 5173",
+    "dev:share": "concurrently \"vite\" \"mekong 5173\""
+  }
+}
+```
+
+## Frameworks Using Vite
+
+| Framework | Install | Default Port |
+|-----------|---------|-------------|
+| React     | `npm create vite@latest -- --template react-ts` | 5173 |
+| Vue 3     | `npm create vite@latest -- --template vue-ts` | 5173 |
+| Svelte    | `npm create vite@latest -- --template svelte-ts` | 5173 |
+| Solid     | `npm create vite@latest -- --template solid-ts` | 5173 |
+| Lit       | `npm create vite@latest -- --template lit-ts` | 5173 |
+| Qwik      | `npm create qwik@latest` | 5173 |
+| Preact    | `npm create vite@latest -- --template preact-ts` | 5173 |
+
+All of the above run `mekong 5173` identically.
+
+## Vite Plugin (Auto-Tunnel)
+
+Add a Vite plugin to automatically start the tunnel when the dev server starts:
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import { createTunnel } from 'mekong-cli'
+
+export default defineConfig({
+  plugins: [
+    react(),
+    {
+      name: 'mekong-tunnel',
+      configureServer(server) {
+        server.httpServer?.once('listening', async () => {
+          const port = (server.httpServer?.address() as any)?.port ?? 5173
+          const tunnel = await createTunnel({ port })
+          // Print alongside Vite's own output
+          setTimeout(() => {
+            console.log(`\n  ➜  Tunnel:  \x1b[36m${tunnel.url}\x1b[0m\n`)
+          }, 100)
+        })
+      },
+    },
+  ],
+})
+```
+
+Run `npm run dev` — the tunnel URL prints right below Vite's local/network URLs.
+
+## React with Vite
+
+```tsx
+// src/App.tsx
+import { useState, useEffect } from 'react'
+
+function App() {
+  const [origin, setOrigin] = useState('')
+
+  useEffect(() => {
+    setOrigin(window.location.origin)
+  }, [])
+
+  return (
+    <div>
+      <h1>Hello from Vite + React!</h1>
+      <p>Accessible at: <a href={origin}>{origin}</a></p>
+    </div>
+  )
+}
+
+export default App
+```
+
+```bash
+mekong 5173
+# Share the URL — it works on any device, anywhere
+```
+
+## Vue 3 with Vite
+
+```vue
+<!-- src/App.vue -->
+<template>
+  <div>
+    <h1>Hello from Vue 3!</h1>
+    <p>Tunnel URL: {{ tunnelUrl }}</p>
+  </div>
+</template>
+
+<script setup lang="ts">
+const tunnelUrl = window.location.origin
+</script>
+```
+
+## Environment Variables
+
+```env
+# .env
+VITE_API_URL=https://your-api.mekongtunnel.dev
+VITE_APP_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+Access in code:
+
+```ts
+const apiUrl = import.meta.env.VITE_API_URL
+```
+
+## Vite Proxy (Backend + Frontend)
+
+If your Vite frontend proxies to a backend, expose only the Vite port:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
+    },
+  },
+})
+```
+
+```bash
+# Start backend on 3001, Vite on 5173, tunnel on 5173
+node server.js &
+npm run dev &
+mekong 5173
+# All API calls to https://tunnel.mekongtunnel.dev/api → proxied to localhost:3001
+```
+
+## HMR Through Tunnel
+
+Vite's HMR WebSocket connection uses `localhost` by default. To enable HMR through the tunnel:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  server: {
+    hmr: {
+      // Use wss:// for the public tunnel URL
+      protocol: 'wss',
+      host: 'happy-tiger-a1b2c3d4.mekongtunnel.dev',
+      port: 443,
+      clientPort: 443,
+    },
+  },
+})
+```
+
+> Most of the time you don't need this — just open the tunnel URL and HMR works for live preview, while your main dev window uses `localhost`.
+
+## CORS
+
+If a separate server needs to call your Vite app:
+
+```ts
+// vite.config.ts
+export default defineConfig({
+  server: {
+    cors: true,  // or { origin: '*' }
+  },
+})
+```
+
+## Mobile Device Testing
+
+The most common Vite + tunnel use case:
+
+```bash
+mekong 5173
+# Scan the QR code or copy the URL → open on phone/tablet
+```
+
+No need to be on the same Wi-Fi network. The tunnel works from anywhere.

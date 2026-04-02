@@ -1,0 +1,168 @@
+---
+title: Django
+description: Expose your Django development server with a public tunnel URL
+---
+
+Use `mekong-django` to run `manage.py runserver` and expose it via a public tunnel — useful for testing webhooks (Stripe, GitHub, Slack), demonstrating to clients, or testing on mobile devices.
+
+## Quick Start
+
+```bash
+pip install mekong-tunnel django
+```
+
+```bash
+# Same as: python manage.py runserver
+mekong-django
+```
+
+Public URL: `https://bright-moon-e5f6a7b8.mekongtunnel.dev` — printed immediately.
+
+## Open in Browser
+
+```bash
+mekong-django --domain     # Opens tunnel URL
+mekong-django --local      # Opens http://localhost:8000
+```
+
+## Custom Port
+
+```bash
+mekong-django 8080
+# Same as: python manage.py runserver 8080
+```
+
+## Full Example
+
+```bash
+# From your Django project root (where manage.py lives)
+cd myproject/
+mekong-django --domain
+```
+
+All `runserver` arguments pass through:
+
+```bash
+mekong-django 0.0.0.0:8000 --settings=myproject.settings.dev
+```
+
+## `ALLOWED_HOSTS` Configuration
+
+Django's security check requires tunnel hostnames to be in `ALLOWED_HOSTS`. The easiest fix:
+
+```python
+# settings.py
+import os
+
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '*.mekongtunnel.dev',   # Allow all tunnel subdomains
+]
+
+# Or use django-cors-headers for more control
+```
+
+For dynamic tunnel subdomains, you can also use a middleware:
+
+```python
+# myapp/middleware.py
+class AllowMekongTunnelMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        host = request.META.get('HTTP_HOST', '')
+        if host.endswith('.mekongtunnel.dev'):
+            request.META['SERVER_NAME'] = host.split('.')[0]
+        return self.get_response(request)
+```
+
+```python
+# settings.py
+MIDDLEWARE = [
+    'myapp.middleware.AllowMekongTunnelMiddleware',
+    ...
+]
+```
+
+## CSRF for Webhooks
+
+Django's CSRF middleware will reject POST requests from external sources. For webhook endpoints, exempt them:
+
+```python
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+
+@csrf_exempt
+def stripe_webhook(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    payload = json.loads(request.body)
+    print("Event:", payload.get("type"))
+    return JsonResponse({"status": "ok"})
+```
+
+```python
+# urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('webhooks/stripe/', views.stripe_webhook, name='stripe_webhook'),
+]
+```
+
+## Django REST Framework
+
+Works perfectly via tunnel. Example:
+
+```python
+# views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+@api_view(['GET'])
+def hello(request):
+    host = request.META.get('HTTP_HOST')
+    return Response({
+        "message": "Hello from Django!",
+        "tunnel_host": host,
+    })
+```
+
+```bash
+mekong-django --domain
+# API: https://your-tunnel.mekongtunnel.dev/api/hello/
+```
+
+## Programmatic API
+
+```python
+from mekong_tunnel import start_tunnel
+import subprocess, sys
+
+tunnel = start_tunnel(port=8000)
+print("Public URL:", tunnel.url)
+
+subprocess.run([sys.executable, 'manage.py', 'runserver', '8000'])
+```
+
+## Static Files
+
+Django's dev server serves static files automatically when `DEBUG=True`. These are proxied through the tunnel normally.
+
+For media files (uploads), ensure `MEDIA_URL` is configured and `DEBUG=True` for dev.
+
+## Environment Variables
+
+```bash
+MEKONG_TOKEN=your_token DJANGO_SETTINGS_MODULE=myproject.settings mekong-django --domain
+```
+
+## Notes
+
+- Django's `runserver` auto-reloads on code changes; the tunnel stays connected during reloads
+- `DEBUG=True` must be set for Django's dev server to work properly
+- For production-grade serving, use `mekong-gunicorn` with `gunicorn myproject.wsgi:application`

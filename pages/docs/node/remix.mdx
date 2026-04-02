@@ -1,0 +1,178 @@
+---
+title: Remix
+description: Expose your Remix dev server with a public tunnel URL
+---
+
+Remix is a full-stack React framework built on web standards. Tunnel it to test actions, loaders, OAuth callbacks, and webhooks with real external services.
+
+## Quick Start
+
+```bash
+npm install -g mekong-cli
+mekong auth YOUR_TOKEN
+```
+
+```bash
+# Terminal 1
+npm run dev        # Remix starts on http://localhost:5173 (Vite) or 3000 (classic)
+
+# Terminal 2
+mekong 5173
+# → https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+> **Remix + Vite** (default since v2.2): port `5173`
+> **Remix Classic** (older): port `3000`
+
+Or together:
+
+```bash
+npx concurrently "remix dev" "mekong 5173"
+```
+
+## package.json Scripts
+
+```json
+{
+  "scripts": {
+    "dev": "remix vite:dev",
+    "tunnel": "mekong 5173",
+    "dev:share": "concurrently \"remix vite:dev\" \"mekong 5173\""
+  }
+}
+```
+
+## Custom Port
+
+```bash
+PORT=4000 remix vite:dev
+mekong 4000
+```
+
+Or in `vite.config.ts`:
+
+```ts
+import { vitePlugin as remix } from '@remix-run/dev'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  plugins: [remix()],
+  server: { port: 4000 },
+})
+```
+
+## Environment Variables
+
+```env
+# .env
+APP_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+SESSION_SECRET=your-session-secret
+```
+
+Access in loaders/actions:
+
+```ts
+// app/routes/_index.tsx
+export async function loader() {
+  const appUrl = process.env.APP_URL
+  return { appUrl }
+}
+```
+
+## Actions & Form Submissions Via Tunnel
+
+Remix actions work through the tunnel exactly like a deployed app:
+
+```tsx
+// app/routes/contact.tsx
+import { ActionFunctionArgs, json } from '@remix-run/node'
+import { Form, useActionData } from '@remix-run/react'
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData()
+  const email = formData.get('email')
+  // Process...
+  return json({ success: true })
+}
+
+export default function Contact() {
+  const data = useActionData<typeof action>()
+  return (
+    <Form method="post">
+      <input name="email" type="email" required />
+      <button type="submit">Submit</button>
+      {data?.success && <p>Submitted!</p>}
+    </Form>
+  )
+}
+```
+
+```bash
+mekong 5173
+# POST to https://tunnel.mekongtunnel.dev/contact → works perfectly
+```
+
+## OAuth / Remix Auth
+
+```env
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+APP_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+```ts
+// app/services/auth.server.ts
+import { Authenticator } from 'remix-auth'
+import { GitHubStrategy } from 'remix-auth-github'
+
+export const authenticator = new Authenticator(sessionStorage)
+
+authenticator.use(
+  new GitHubStrategy(
+    {
+      clientID: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      callbackURL: `${process.env.APP_URL}/auth/github/callback`,
+    },
+    async ({ profile }) => profile
+  )
+)
+```
+
+Add to your GitHub OAuth app:
+
+```
+https://happy-tiger-a1b2c3d4.mekongtunnel.dev/auth/github/callback
+```
+
+## Webhooks in Resource Routes
+
+```ts
+// app/routes/webhooks.stripe.tsx
+import { ActionFunctionArgs } from '@remix-run/node'
+import Stripe from 'stripe'
+
+export async function action({ request }: ActionFunctionArgs) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+  const body = await request.text()
+  const sig = request.headers.get('stripe-signature')!
+
+  const event = stripe.webhooks.constructEvent(
+    body, sig, process.env.STRIPE_WEBHOOK_SECRET!
+  )
+
+  // handle event...
+  return new Response('OK')
+}
+```
+
+```bash
+mekong 5173
+# Register webhook: https://happy-tiger-a1b2c3d4.mekongtunnel.dev/webhooks/stripe
+```
+
+## Tips
+
+- Remix's HMR/HDR dev features work locally; the tunnel proxies the served output
+- `loader` and `action` functions run on the server — all tunnel requests hit your local Node process
+- Cookie-based sessions work through the tunnel; ensure `SESSION_SECRET` is set

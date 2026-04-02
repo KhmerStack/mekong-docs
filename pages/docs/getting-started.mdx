@@ -1,0 +1,125 @@
+---
+title: Getting Started
+description: What is MekongTunnel and how to get up and running in under a minute.
+---
+
+# Getting Started
+
+MekongTunnel is a **self-hosted SSH tunnel server** written in Go. It works like ngrok or Cloudflare Tunnel, but you control it.
+
+Run one command and expose any local port to the internet with a public HTTPS URL:
+
+```
+mekong 3000
+```
+
+You get:
+- A unique public URL: `https://happy-tiger-a1b2.mekongtunnel.dev`
+- The URL copied to your clipboard automatically
+- A QR code printed in your terminal
+- Live HTTP request logs streamed to your terminal
+- Auto-reconnect if the connection drops
+
+**New in v1.5.0:**
+- One-liner installers: `curl -fsSL https://mekongtunnel.dev/install.sh | sh` (macOS/Linux) and `irm https://mekongtunnel.dev/install.ps1 | iex` (Windows)
+- `mekong login` — authenticate via browser device flow, get a reserved subdomain
+- `mekong whoami` — show your account email and plan
+- `mekong test` — run a self-test to verify the tunnel is working
+- Windows arm64 support
+- VS Code extension v1.5.0 with account/login panel
+
+**New in v1.4.6+:**
+- Daemon management: `mekong -d 3000`, `mekong logs`, `mekong logs -f`
+- Filter daemon logs by port: `mekong logs 3000`
+- Stop one daemon tunnel: `mekong stop 3000` or stop all: `mekong stop --all`
+- `mekong status` shows per-port daemon state and PID info
+
+**New in v1.4.4:**
+- Tunnel expiry with `-e` / `--expire` flags
+- `mekong status` shows expiry in output
+
+## Prerequisites
+
+- macOS, Linux, or Windows
+- A running local service on any port
+
+That's it. No config file. No dashboard.
+
+## Quick start
+
+**Step 1** — Install the CLI
+
+```bash
+# macOS / Linux — one-liner
+curl -fsSL https://mekongtunnel.dev/install.sh | sh
+
+# Windows PowerShell
+irm https://mekongtunnel.dev/install.ps1 | iex
+```
+
+See the [Installation](/docs/installation) page for all platforms and manual options.
+
+**Step 2** — Log in (optional but recommended for reserved subdomain)
+
+```bash
+mekong login
+# Opens browser → approve → saves ~/.mekong/config.json
+# Every tunnel will use your reserved subdomain from now on
+```
+
+**Step 3** — Start a local server (or use your existing app)
+
+```bash
+python3 -m http.server 3000
+```
+
+**Step 4** — Open a tunnel
+
+```bash
+mekong 3000
+```
+
+You'll see the banner with your public URL within seconds.
+
+## Verify everything works
+
+```bash
+mekong test
+# Runs a self-test: connects, opens tunnel, verifies response
+```
+
+```bash
+mekong whoami
+# Shows your account email and plan
+```
+
+## What happens under the hood
+
+When you run `mekong 3000`, the CLI:
+
+1. Connects to `mekongtunnel.dev` over SSH on port 22
+2. Sends a `tcpip-forward` request to ask the server to forward traffic
+3. The server assigns you a memorable subdomain and starts listening
+4. A public HTTPS URL is displayed in your terminal
+5. Incoming requests are forwarded to your `localhost:3000` via the SSH channel
+
+See [How It Works](/docs/how-it-works) for a full technical walkthrough.
+
+## Ecosystem
+
+MekongTunnel has official packages for multiple languages and editors:
+
+| Package | Install | Use case |
+|---------|---------|----------|
+| **mekong-cli** (npm) | `npm install -g mekong-cli` | Node.js dev server + tunnel in one command |
+| **mekong-tunnel** (PyPI) | `pip install mekong-tunnel` | Python framework wrappers (FastAPI, Flask, Django…) |
+| **VS Code Extension** | Extensions panel: `KhmerStack.mekong-tunnel` | Manage tunnels from your editor |
+
+## Next steps
+
+- [Installation](/docs/installation) — all platforms and install methods
+- [CLI Reference](/docs/cli-reference) — all flags and commands
+- [Node.js / npm](/docs/npm-cli) — mekong-cli package
+- [Python](/docs/python) — mekong-tunnel PyPI package
+- [VS Code Extension](/docs/vscode-extension) — editor integration
+- [Self-Hosting](/docs/self-hosting) — run your own server

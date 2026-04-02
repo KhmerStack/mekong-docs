@@ -1,0 +1,214 @@
+---
+title: Python
+description: mekong-tunnel — CLI wrappers, Python SDK, and auth helpers for Python web frameworks.
+---
+
+# Python — mekong-tunnel
+
+**mekong-tunnel** is the official PyPI package for MekongTunnel. It provides:
+
+- Drop-in CLI wrappers for popular Python web frameworks (`mekong-fastapi`, `mekong-flask`, etc.)
+- A Python **SDK** (`import mekong_tunnel as mekong`) for programmatic use
+- Auth helpers that read your saved login token automatically
+
+**PyPI:** [pypi.org/project/mekong-tunnel](https://pypi.org/project/mekong-tunnel/)
+
+---
+
+## Installation
+
+```bash
+pip install mekong-tunnel
+# or
+uv add mekong-tunnel
+# or
+poetry add mekong-tunnel
+```
+
+> The `mekong` binary (Go) is required separately. See [Installation](/docs/installation).
+
+---
+
+## How It Works
+
+Instead of running your server directly, use a `mekong-*` wrapper command. It:
+
+1. Starts your Python server (passing through all your arguments)
+2. Launches a MekongTunnel in the background
+3. Prints the public URL — and optionally opens it in your browser
+
+```
+mekong-fastapi   →  uvicorn main:app      +  tunnel
+mekong-flask     →  flask run             +  tunnel
+mekong-django    →  manage.py runserver   +  tunnel
+mekong-uvicorn   →  uvicorn               +  tunnel
+mekong-gunicorn  →  gunicorn              +  tunnel
+mekong-hypercorn →  hypercorn             +  tunnel
+mekong-granian   →  granian               +  tunnel
+```
+
+---
+
+## Modes
+
+All commands support two modes:
+
+| Flag | Description |
+|------|-------------|
+| `--local` | Start server on localhost, open browser at `http://localhost:PORT` |
+| `--domain` | Start server + tunnel, open browser at public tunnel URL |
+| *(no flag)* | Start server + tunnel, print URL only |
+
+---
+
+## Authentication
+
+All commands and the SDK pick up your token automatically once you run `mekong login`:
+
+```bash
+mekong login
+# Opens browser → approve → saved to ~/.mekong/config.json
+# Every subsequent tunnel uses your reserved subdomain
+```
+
+**Token resolution order:**
+
+1. `--token <tok>` flag (CLI wrappers) or `token=` argument (SDK)
+2. `MEKONG_TOKEN` environment variable
+3. `~/.mekong/config.json` (written by `mekong login`)
+4. _(none — anonymous mode, random subdomain)_
+
+Pass a token explicitly on any wrapper command:
+
+```bash
+mekong-fastapi --token mkt_xxxxxxxxxxxx main:app --port 8000
+```
+
+Or use an environment variable (great for CI/CD):
+
+```bash
+MEKONG_TOKEN=mkt_xxx mekong-fastapi main:app --port 8000
+```
+
+Get a token: [Dashboard → API Tokens](/dashboard/tokens)
+
+---
+
+## Python SDK
+
+Use the SDK to control tunnels programmatically — great for test setups, integration tests, or custom tooling.
+
+```python
+import mekong_tunnel as mekong
+```
+
+### `expose(port, **opts)` → `Tunnel`
+
+Start a tunnel and get the public URL:
+
+```python
+tunnel = mekong.expose(8000)
+print(tunnel.url)   # https://myapp.mekongtunnel.dev
+tunnel.stop()
+```
+
+With options:
+
+```python
+tunnel = mekong.expose(8000,
+    token='mkt_xxx',   # override saved token
+    expire='2h',
+    no_qr=True,
+)
+```
+
+> Token resolution: `token=` argument → `MEKONG_TOKEN` env → `~/.mekong/config.json`.
+
+### Context manager
+
+Use `with` to automatically stop the tunnel when you're done:
+
+```python
+with mekong.expose(8000) as t:
+    print(t.url)    # tunnel is live inside the block
+# tunnel stopped automatically
+```
+
+### `login(open_browser=True)` → `str`
+
+Authenticate via the browser device flow — same as `mekong login` in the terminal:
+
+```python
+token = mekong.login()
+# Opens mekongtunnel.dev/cli-auth in the browser,
+# polls until you approve, then saves ~/.mekong/config.json.
+print('Token:', token)
+```
+
+### `logout()`
+
+Remove saved credentials:
+
+```python
+mekong.logout()
+```
+
+### `whoami()` → `dict | None`
+
+Return saved auth config:
+
+```python
+info = mekong.whoami()
+# {'token': 'mkt_xxx', 'email': 'you@example.com'}  or  None
+```
+
+### `get_token()` → `str | None`
+
+Read the token from env or saved config without starting anything:
+
+```python
+token = mekong.get_token()
+```
+
+---
+
+## pytest integration example
+
+```python
+import pytest
+import mekong_tunnel as mekong
+
+@pytest.fixture(scope='session')
+def public_url():
+    with mekong.expose(8000) as t:
+        yield t.url
+
+def test_home(public_url):
+    import urllib.request
+    res = urllib.request.urlopen(public_url)
+    assert res.status == 200
+```
+
+---
+
+## Framework Guides
+
+Choose your framework from the sidebar:
+
+- [FastAPI](/docs/python-fastapi) — async ASGI with automatic docs
+- [Flask](/docs/python-flask) — lightweight WSGI microframework
+- [Django](/docs/python-django) — full-stack web framework
+- [Uvicorn / Gunicorn](/docs/python-uvicorn) — raw ASGI/WSGI servers
+- [Starlette / Granian](/docs/python-starlette) — minimal ASGI + modern server
+
+---
+
+## Version
+
+Current version: **v2.1.0** — [pypi.org/project/mekong-tunnel](https://pypi.org/project/mekong-tunnel/)
+
+## Requirements
+
+- Python 3.8+
+- `mekong` binary installed — see [Installation](/docs/installation)
+- macOS, Linux, or Windows (WSL recommended)

@@ -1,0 +1,103 @@
+---
+title: How It Works
+description: A technical walkthrough of MekongTunnel's SSH reverse port forwarding architecture.
+---
+
+# How It Works
+
+MekongTunnel uses standard **SSH reverse port forwarding** (`-R`) — no proprietary protocol, no agents, nothing exotic.
+
+## Architecture overview
+
+```ascii
+Your Browser
+│  HTTPS to happy-tiger-a1b2.mekongtunnel.dev
+▼
+┌──────────────────────────────────────────┐
+│           MekongTunnel Server            │
+│                                          │
+│  SSH :22  →  HTTP :80  →  HTTPS :443     │
+│      │                        │          │
+│      ▼                        ▼          │
+│  Tunnel Registry  ←───────────────────   │
+│  map[subdomain]*Tunnel                   │
+└────────────────┬─────────────────────────┘
+                 │  forwarded-tcpip channel
+                 ▼
+         Your SSH client (mekong CLI)
+                 │
+                 ▼
+         localhost:3000 (your app)
+```
+
+## Step by step
+
+### 1. Client connects
+
+When you run `mekong 3000`, the CLI establishes an SSH connection to the server and sends a `tcpip-forward` global request:
+
+```
+BindAddr: ""
+BindPort: 80
+```
+
+### 2. Server assigns subdomain
+
+The server generates a unique memorable subdomain (e.g. `happy-tiger-a1b2`) using a format of `adjective-noun-hex`. It then creates an internal TCP listener on a random loopback port (e.g. `127.0.0.1:54321`).
+
+### 3. Tunnel registered
+
+The server stores the mapping:
+
+```
+subdomain → internal TCP listener address
+```
+
+### 4. Browser request arrives
+
+A browser hits `https://happy-tiger-a1b2.mekongtunnel.dev`. The server:
+
+1. Terminates TLS on port 443
+2. Extracts the subdomain from the `Host` header
+3. Looks up the tunnel in the registry
+4. Dials the internal listener (`127.0.0.1:54321`)
+
+### 5. SSH channel opened
+
+The server opens a `forwarded-tcpip` SSH channel back through the SSH connection to the client:
+
+```
+channel open: forwarded-tcpip
+  DestAddr:   "happy-tiger-a1b2.mekongtunnel.dev"
+  DestPort:   80
+  OriginAddr: <browser IP>
+  OriginPort: <browser port>
+```
+
+### 6. Client proxies to local
+
+The mekong CLI receives the `forwarded-tcpip` channel and dials `localhost:3000`, then copies data bidirectionally between the SSH channel and your local app.
+
+### 7. Response flows back
+
+The response from your app flows back through the SSH channel → server → HTTPS → browser.
+
+## WebSocket support
+
+WebSocket connections are detected by inspecting the `Upgrade: websocket` header. The server hijacks the HTTP connection and sets up bidirectional byte copying with a 1 GB transfer limit and 2-hour idle timeout per direction.
+
+## Security warning interstitial
+
+For browser requests, MekongTunnel shows a one-time phishing warning page before forwarding to the tunnel. This protects users from malicious content shared via tunnel URLs.
+
+- The warning sets a cookie (`mekong_warned_{subdomain}`) valid for 24 hours
+- API clients (curl, etc.) are not affected — only browser User-Agents
+- To skip it programmatically: `curl -H "mekongtunnel-skip-warning: 1" <url>`
+
+## Rate limiting
+
+Two layers of rate limiting protect the server:
+
+**Connection rate (per IP):** Maximum 30 new SSH connections per minute using a sliding window. After 10 violations, the IP is blocked for 15 minutes.
+
+**Request rate (per tunnel):** Token bucket at 10 requests/second with burst of 20. After 10 violations, the SSH client IP is blocked and the tunnel is killed.

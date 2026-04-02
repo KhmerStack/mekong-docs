@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ─── Nextra theme variables ─────────────────────────────────── */
+:root {
+  --nextra-primary-hue: 221.2deg;
+  --nextra-primary-saturation: 83.2%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ─── Navbar ─────────────────────────────────────────────────── */
+
+/* Ensure navbar is always full-width and doesn't overflow */
+.nextra-nav-container {
+  @apply w-full;
+}
+
+/* Logo text wraps gracefully on small screens */
+.nextra-nav-container nav .nx-flex.nx-items-center {
+  @apply gap-2 min-w-0;
+}
+
+/* ─── Sidebar ────────────────────────────────────────────────── */
+
+/* On mobile Nextra renders the sidebar as a slide-over drawer —
+   make the hamburger button always visible below md */
+.nextra-sidebar-toggle {
+  @apply !flex md:!hidden;
+}
+
+/* Prevent sidebar from overflowing viewport width on small screens */
+.nextra-sidebar-container {
+  @apply max-w-[85vw] md:max-w-none;
+}
+
+/* Active link */
+.nextra-sidebar-container .active {
+  @apply !font-semibold;
+}
+
+/* ─── Content area ───────────────────────────────────────────── */
+
+/* Tighten horizontal padding on mobile */
+.nextra-content {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+/* Remove excessive bottom padding in the main content wrapper on mobile */
+.nextra-content main {
+  @apply !pb-8 sm:!pb-16;
+}
+
+/* Prose / article body */
+article.nextra-body {
+  @apply max-w-full overflow-x-hidden;
+}
+
+/* ─── Prev / Next navigation ─────────────────────────────────── */
+
+/* Reduce the giant top margin above the prev/next buttons on mobile */
+.nextra-navigation-links {
+  @apply !mt-6 sm:!mt-12;
+}
+
+.nextra-navigation-links a {
+  @apply !py-3 !px-4;
+}
+
+/* ─── Tables ─────────────────────────────────────────────────── */
+
+/* On small screens make tables horizontally scrollable instead of overflowing */
+.nextra-body table,
+article table {
+  @apply block w-full overflow-x-auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Code blocks ────────────────────────────────────────────── */
+
+.nextra-code-block pre,
+pre {
+  @apply !rounded-lg overflow-x-auto;
+  -webkit-overflow-scrolling: touch;
+  /* prevent long lines from blowing out layout on mobile */
+  max-width: 100%;
+}
+
+/* Inline code should wrap rather than overflow */
+code:not(pre code) {
+  word-break: break-word;
+}
+
+/* ─── TOC (right rail) ───────────────────────────────────────── */
+
+/* Hide TOC on small/medium screens — Nextra does this by default
+   but we make it explicit */
+.nextra-toc {
+  @apply hidden xl:block;
+}
+
+/* ─── Steps / Callout ────────────────────────────────────────── */
+
+.nextra-steps h3::before {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* ─── Cards grid (index page) ────────────────────────────────── */
+
+/* Nextra's <Cards> already uses a responsive grid, but we reinforce
+   single-column on very small viewports */
+.nextra-cards {
+  @apply !grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3;
+}
+
+/* ─── Images ─────────────────────────────────────────────────── */
+
+article img {
+  @apply max-w-full h-auto rounded-lg;
+}
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+
+footer.nextra-footer {
+  @apply px-4 sm:px-6;
+}
+
+/* ─── Search modal ───────────────────────────────────────────── */
+
+/* Ensure search overlay doesn't overflow on narrow phones */
+.nextra-search-results {
+  @apply !max-w-[calc(100vw-2rem)] sm:!max-w-lg;
+}

@@ -1,0 +1,163 @@
+---
+title: Self-Hosting
+description: Run your own MekongTunnel server on any VPS with Docker or systemd.
+---
+
+# Self-Hosting
+
+MekongTunnel is fully self-hostable. You need:
+
+- A VPS with a public IP address
+- A domain name with DNS pointing to your server
+- A wildcard TLS certificate (Let's Encrypt)
+
+---
+
+## Step 1 — DNS records
+
+Add two A records in your DNS provider:
+
+| Type | Name | Value |
+|------|------|-------|
+| A | `yourdomain.com` | `YOUR_SERVER_IP` |
+| A | `*.yourdomain.com` | `YOUR_SERVER_IP` |
+
+The wildcard record routes all subdomain tunnel URLs to your server.
+
+---
+
+## Step 2 — TLS certificate
+
+Use Certbot to issue a wildcard certificate (requires DNS challenge):
+
+```bash
+sudo apt install certbot
+
+sudo certbot certonly --manual --preferred-challenges dns \
+  -d yourdomain.com \
+  -d '*.yourdomain.com'
+```
+
+Certificates are saved to:
+```
+/etc/letsencrypt/live/yourdomain.com/fullchain.pem
+/etc/letsencrypt/live/yourdomain.com/privkey.pem
+```
+
+---
+
+## Step 3 — Move your SSH to port 2222
+
+MekongTunnel needs port 22. Move your server's own SSH first:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+# Change:  Port 22  →  Port 2222
+sudo systemctl restart sshd
+```
+
+**Open a new session on port 2222 before closing your current session.**
+
+Open the required firewall ports:
+
+```bash
+sudo ufw allow 22/tcp       # MekongTunnel SSH
+sudo ufw allow 80/tcp       # HTTP redirect
+sudo ufw allow 443/tcp      # HTTPS proxy
+sudo ufw allow 2222/tcp     # Your own SSH
+```
+
+---
+
+## Step 4 — Deploy with Docker
+
+```bash
+git clone https://github.com/MuyleangIng/MekongTunnel.git
+cd MekongTunnel
+
+# Create .env
+cp .env.example .env
+nano .env  # Set DOMAIN=yourdomain.com
+
+# Copy certificates
+mkdir -p data/certs
+sudo cp /etc/letsencrypt/live/yourdomain.com/fullchain.pem data/certs/
+sudo cp /etc/letsencrypt/live/yourdomain.com/privkey.pem   data/certs/
+sudo chown -R $USER:$USER data/certs
+
+# Start
+docker compose up -d
+
+# Logs
+docker compose logs -f
+```
+
+---
+
+## Step 5 — Connect!
+
+```bash
+# Using raw SSH (recommended for self-hosted instances)
+ssh -t -R 80:localhost:8080 yourdomain.com
+```
+
+> The `--server` flag was removed in v1.4.3. To connect to a self-hosted instance, use raw SSH directly.
+
+---
+
+## Deploy with systemd (no Docker)
+
+```bash
+# Build the binary
+make build-small
+
+# Install
+sudo mkdir -p /opt/mekongtunnel
+sudo cp bin/mekongtunnel /opt/mekongtunnel/
+sudo chmod +x /opt/mekongtunnel/mekongtunnel
+
+# Create service
+sudo nano /etc/systemd/system/mekongtunnel.service
+```
+
+```ini
+[Unit]
+Description=MekongTunnel SSH Tunnel Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/mekongtunnel
+ExecStart=/opt/mekongtunnel/mekongtunnel
+Restart=always
+RestartSec=5
+
+Environment=DOMAIN=yourdomain.com
+Environment=SSH_ADDR=:22
+Environment=HTTP_ADDR=:80
+Environment=HTTPS_ADDR=:443
+Environment=STATS_ADDR=127.0.0.1:9090
+Environment=HOST_KEY_PATH=/opt/mekongtunnel/host_key
+Environment=TLS_CERT=/etc/letsencrypt/live/yourdomain.com/fullchain.pem
+Environment=TLS_KEY=/etc/letsencrypt/live/yourdomain.com/privkey.pem
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now mekongtunnel
+sudo systemctl status mekongtunnel
+```
+
+---
+
+## Renewing certificates
+
+```bash
+sudo certbot renew
+sudo cp /etc/letsencrypt/live/yourdomain.com/*.pem data/certs/
+docker compose restart
+```

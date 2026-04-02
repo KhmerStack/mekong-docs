@@ -1,0 +1,181 @@
+---
+title: Uvicorn / Gunicorn
+description: Run ASGI and WSGI servers with a public tunnel URL
+---
+
+Use `mekong-uvicorn` and `mekong-gunicorn` when you need direct control over your ASGI/WSGI server — without framework-specific wrappers.
+
+## Uvicorn (ASGI)
+
+Uvicorn is the recommended ASGI server for FastAPI, Starlette, and other async apps.
+
+### Install
+
+```bash
+pip install mekong-tunnel uvicorn
+```
+
+### Usage
+
+```bash
+# Same as: uvicorn myapp:app
+mekong-uvicorn myapp:app
+
+# With options
+mekong-uvicorn myapp:app --host 0.0.0.0 --port 8000 --reload --workers 2
+```
+
+### Open in Browser
+
+```bash
+mekong-uvicorn myapp:app --reload --domain
+```
+
+### All Uvicorn Options Pass Through
+
+```bash
+mekong-uvicorn myapp:app \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --reload \
+  --reload-dir ./src \
+  --log-level info \
+  --ssl-keyfile ./key.pem \
+  --ssl-certfile ./cert.pem \
+  --workers 4
+```
+
+### Example: Raw ASGI App
+
+```python
+# myapp.py
+async def app(scope, receive, send):
+    if scope["type"] == "http":
+        await send({
+            "type": "http.response.start",
+            "status": 200,
+            "headers": [[b"content-type", b"application/json"]],
+        })
+        await send({
+            "type": "http.response.body",
+            "body": b'{"hello": "world"}',
+        })
+```
+
+```bash
+mekong-uvicorn myapp:app --domain
+```
+
+---
+
+## Gunicorn (WSGI)
+
+Gunicorn is the standard production WSGI server for Flask, Django, and Pyramid.
+
+### Install
+
+```bash
+pip install mekong-tunnel gunicorn
+```
+
+### Usage
+
+```bash
+# Same as: gunicorn myapp:app
+mekong-gunicorn myapp:app
+
+# With WSGI config
+mekong-gunicorn myapp:application --workers 4 --bind 0.0.0.0:8000
+```
+
+### Open in Browser
+
+```bash
+mekong-gunicorn myapp:app --domain
+```
+
+### Gunicorn Config File
+
+```python
+# gunicorn.conf.py
+bind = "0.0.0.0:8000"
+workers = 4
+worker_class = "sync"
+timeout = 120
+loglevel = "info"
+```
+
+```bash
+mekong-gunicorn myapp:app -c gunicorn.conf.py --domain
+```
+
+### Gunicorn + Uvicorn Workers (ASGI via Gunicorn)
+
+Use gunicorn as the process manager with uvicorn workers — the best setup for production:
+
+```bash
+pip install gunicorn uvicorn[standard]
+
+mekong-gunicorn myapp:app \
+  --worker-class uvicorn.workers.UvicornWorker \
+  --workers 4 \
+  --bind 0.0.0.0:8000 \
+  --domain
+```
+
+This gives you gunicorn's worker management + uvicorn's async performance.
+
+### Django with Gunicorn
+
+```bash
+mekong-gunicorn myproject.wsgi:application \
+  --workers 4 \
+  --bind 0.0.0.0:8000 \
+  --domain
+```
+
+### Flask with Gunicorn
+
+```bash
+mekong-gunicorn "myapp:create_app()" \
+  --workers 2 \
+  --domain
+```
+
+---
+
+## Comparison
+
+| | `mekong-uvicorn` | `mekong-gunicorn` |
+|--|--|--|
+| Protocol | ASGI | WSGI |
+| Best for | FastAPI, Starlette, async | Flask, Django, sync |
+| Workers | Single/multi | Multi-process |
+| Reload | `--reload` flag | Requires `--reload` (dev only) |
+| Production | Yes (with `--workers`) | Yes |
+
+---
+
+## Programmatic API
+
+```python
+from mekong_tunnel import start_tunnel
+import subprocess, sys
+
+# Start tunnel
+tunnel = start_tunnel(port=8000)
+print("Tunnel URL:", tunnel.url)
+
+# Start uvicorn manually
+subprocess.run([
+    sys.executable, "-m", "uvicorn",
+    "myapp:app", "--host", "0.0.0.0", "--port", "8000", "--reload"
+])
+```
+
+## Environment Variables
+
+```bash
+MEKONG_TOKEN=your_token mekong-uvicorn myapp:app --reload
+MEKONG_TOKEN=your_token mekong-gunicorn myapp:app --workers 4
+```
