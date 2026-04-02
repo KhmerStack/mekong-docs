@@ -68,126 +68,168 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ─── Navbar ─────────────────────────────────────────────────── */
+/* ─── Prevent horizontal overflow at the root ───────────────── */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
 
-/* Ensure navbar is always full-width and doesn't overflow */
+/* ─── Navbar ─────────────────────────────────────────────────── */
 .nextra-nav-container {
   @apply w-full;
 }
 
-/* Logo text wraps gracefully on small screens */
-.nextra-nav-container nav .nx-flex.nx-items-center {
-  @apply gap-2 min-w-0;
-}
-
 /* ─── Sidebar ────────────────────────────────────────────────── */
-
-/* On mobile Nextra renders the sidebar as a slide-over drawer —
-   make the hamburger button always visible below md */
 .nextra-sidebar-toggle {
   @apply !flex md:!hidden;
 }
 
-/* Prevent sidebar from overflowing viewport width on small screens */
 .nextra-sidebar-container {
   @apply max-w-[85vw] md:max-w-none;
 }
 
-/* Active link */
 .nextra-sidebar-container .active {
   @apply !font-semibold;
 }
 
-/* ─── Content area ───────────────────────────────────────────── */
+/* ─── Contain the flex layout — critical for mobile ─────────── */
 
-/* Tighten horizontal padding on mobile */
+/* The row that holds sidebar + content is a flex container.
+   Without min-width:0 on flex children they ignore overflow. */
 .nextra-content {
-  @apply px-4 sm:px-6 lg:px-8;
+  min-width: 0;
+  width: 0;
+  flex: 1 1 0%;
+  overflow-x: hidden;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
 }
 
-/* Remove excessive bottom padding in the main content wrapper on mobile */
-.nextra-content main {
-  @apply !pb-8 sm:!pb-16;
+@media (min-width: 640px) {
+  .nextra-content {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+  }
 }
 
-/* Prose / article body */
-article.nextra-body {
-  @apply max-w-full overflow-x-hidden;
+@media (min-width: 1024px) {
+  .nextra-content {
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
 }
 
-/* ─── Prev / Next navigation ─────────────────────────────────── */
-
-/* Reduce the giant top margin above the prev/next buttons on mobile */
-.nextra-navigation-links {
-  @apply !mt-6 sm:!mt-12;
+/* Article body */
+article.nextra-body,
+.nextra-body {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
-.nextra-navigation-links a {
-  @apply !py-3 !px-4;
-}
-
-/* ─── Tables ─────────────────────────────────────────────────── */
-
-/* On small screens make tables horizontally scrollable instead of overflowing */
-.nextra-body table,
-article table {
-  @apply block w-full overflow-x-auto;
-  -webkit-overflow-scrolling: touch;
+/* Every direct child of main is capped to the column */
+.nextra-content main > * {
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* ─── Code blocks ────────────────────────────────────────────── */
 
-.nextra-code-block pre,
-pre {
-  @apply !rounded-lg overflow-x-auto;
-  -webkit-overflow-scrolling: touch;
-  /* prevent long lines from blowing out layout on mobile */
+/* The wrapper div nextra puts around <pre> */
+.nextra-code-block {
+  /* must not exceed the content column */
   max-width: 100%;
+  overflow: hidden;
 }
 
-/* Inline code should wrap rather than overflow */
+.nextra-code-block pre,
+pre {
+  @apply !rounded-lg;
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* hard cap so it never pushes the layout wider */
+  max-width: 100%;
+  /* keep box-sizing honest */
+  box-sizing: border-box;
+}
+
+/* Inline code wraps rather than overflows */
 code:not(pre code) {
   word-break: break-word;
+  white-space: normal;
+}
+
+/* ─── Tables ─────────────────────────────────────────────────── */
+.nextra-body table,
+article table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── Images ─────────────────────────────────────────────────── */
+article img {
+  @apply max-w-full h-auto rounded-lg;
 }
 
 /* ─── TOC (right rail) ───────────────────────────────────────── */
-
-/* Hide TOC on small/medium screens — Nextra does this by default
-   but we make it explicit */
 .nextra-toc {
   @apply hidden xl:block;
 }
 
 /* ─── Steps / Callout ────────────────────────────────────────── */
-
 .nextra-steps h3::before {
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
 }
 
 /* ─── Cards grid (index page) ────────────────────────────────── */
-
-/* Nextra's <Cards> already uses a responsive grid, but we reinforce
-   single-column on very small viewports */
 .nextra-cards {
   @apply !grid-cols-1 sm:!grid-cols-2 lg:!grid-cols-3;
 }
 
-/* ─── Images ─────────────────────────────────────────────────── */
+/* ─── Last updated timestamp ─────────────────────────────────── */
+.nextra-body + div,
+.nextra-last-updated {
+  @apply !mt-4 !mb-0;
+}
 
-article img {
-  @apply max-w-full h-auto rounded-lg;
+/* ─── Prev / Next navigation ─────────────────────────────────── */
+.nextra-navigation-links {
+  @apply !mt-4 sm:!mt-8 !mb-0;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 1rem;
+}
+
+.nextra-navigation-links a {
+  @apply !py-3 !px-3 rounded-lg border border-border
+         hover:border-primary/50 hover:bg-accent transition-colors text-sm;
+  min-width: 0;
+}
+
+.nextra-navigation-links a p:first-child {
+  @apply text-xs text-muted-foreground font-normal;
+}
+
+.nextra-navigation-links a p:last-child {
+  @apply font-medium text-foreground;
+}
+
+/* ─── Content bottom padding ─────────────────────────────────── */
+.nextra-content main {
+  @apply !pb-6 sm:!pb-12;
 }
 
 /* ─── Footer ─────────────────────────────────────────────────── */
-
 footer.nextra-footer {
-  @apply px-4 sm:px-6;
+  @apply !pt-4 !pb-6 px-4 sm:px-6;
+  border-top: 1px solid hsl(var(--border));
 }
 
 /* ─── Search modal ───────────────────────────────────────────── */
-
-/* Ensure search overlay doesn't overflow on narrow phones */
 .nextra-search-results {
   @apply !max-w-[calc(100vw-2rem)] sm:!max-w-lg;
 }
