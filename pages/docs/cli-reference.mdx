@@ -13,11 +13,19 @@ mekong -p <port> [flags]
 mekong login
 mekong logout
 mekong whoami
-mekong status [port]
-mekong logs [port]
-mekong logs -f [port]
+mekong ps
+mekong status [name|port]
+mekong logs [-f] [name|port]
 mekong stop <port>
 mekong stop --all
+mekong rm
+mekong rm -f [name]
+mekong subdomain [list|add|delete] [name]
+mekong domain <add|connect|verify|wait|target|delete> ...
+mekong completion [zsh|bash]
+mekong detect [--json]
+mekong init [--port N] [--start CMD] [--upstream-host HOST]
+mekong doctor [domain]
 mekong update
 mekong version
 ```
@@ -54,16 +62,53 @@ mekong --token mkt_xxx 3000          # one-shot token override
 
 | Command | Description |
 |---------|-------------|
-| `mekong status` | Show all your active tunnels |
-| `mekong status <port>` | Show tunnel for a specific port |
+| `mekong ps` | Table view of all active daemon tunnels (like `docker ps`) |
+| `mekong status` | Detailed view of all active tunnels |
+| `mekong status [name\|port]` | Show tunnel for a specific subdomain name or local port |
 | `mekong logs` | Print daemon logs for all tunnels |
 | `mekong logs -f` | Follow daemon logs live |
-| `mekong logs <port>` | Print daemon logs filtered by local port |
-| `mekong logs -f <port>` | Follow daemon logs live for one port |
+| `mekong logs [name\|port]` | Print daemon logs filtered by subdomain name or local port |
+| `mekong logs -f [name\|port]` | Follow daemon logs live for one tunnel |
+| `mekong rm` | Clear logs for random tunnels (reserved tunnels protected) |
+| `mekong rm -f` | Force-clear all logs |
+| `mekong rm -f <name>` | Clear logs for one specific named reserved tunnel |
 | `mekong stop <port>` | Stop one running background tunnel |
 | `mekong stop --all` | Stop all running background tunnels |
 | `mekong update` | Auto-update to the latest release |
 | `mekong version` | Show installed version |
+| `mekong completion [zsh\|bash]` | Print shell tab-completion script |
+
+### Subdomains
+
+| Command | Description |
+|---------|-------------|
+| `mekong subdomain` | List reserved subdomains (alias: `mekong sd`) |
+| `mekong subdomain <name>` | Reserve a new subdomain |
+| `mekong subdomain delete <name>` | Delete with confirmation prompt |
+| `mekong subdomain delete <name> --yes` | Delete without confirmation (for scripts/CI) |
+
+### Custom Domains
+
+| Command | Description |
+|---------|-------------|
+| `mekong domain` | List custom domains (alias: `mekong dm`) |
+| `mekong domain add <d>` | Add a custom domain |
+| `mekong domain connect <d> <sub>` | Add + verify + target in one step |
+| `mekong domain verify <d>` | Run a DNS/HTTPS verification check |
+| `mekong domain wait <d>` | Poll until DNS and HTTPS are ready |
+| `mekong domain target <d> <sub>` | Point domain to a reserved subdomain |
+| `mekong domain delete <d>` | Delete with confirmation prompt |
+| `mekong domain delete <d> --yes` | Delete without confirmation |
+| `mekong doctor <d>` | Check custom-domain DNS and HTTPS |
+
+### Project
+
+| Command | Description |
+|---------|-------------|
+| `mekong detect` | Detect local stack and port |
+| `mekong detect --json` | Output detection data as JSON for scripting |
+| `mekong init` | Write `.mekong.json` for this project |
+| `mekong doctor` | Check connectivity, auth, and config |
 
 ---
 
@@ -74,7 +119,10 @@ mekong --token mkt_xxx 3000          # one-shot token override
 | `-p`, `--port <n>` | _(positional)_ | Local port to expose |
 | `--token <tok>` | _(saved login / env)_ | API token for reserved subdomain |
 | `-d` | `false` | Run tunnel in background daemon mode |
-| `-e`, `--expire <duration>` | server default | Requested tunnel lifetime / idle timeout |
+| `-e`, `--expire <duration>` | `24h` (anonymous) / `1w` (reserved) | Requested tunnel lifetime |
+| `-sd`, `--subdomain <name>` | _(none)_ | Use a reserved subdomain |
+| `--skip-browser-warning` / `--no-warning` | `false` | Skip phishing-warning interstitial for all visitors |
+| `--upstream-host <host>` | _(none)_ | Override Host header for vhost apps (Laragon/XAMPP/WAMP) |
 | `--no-qr` | `false` | Disable QR code display |
 | `--no-clipboard` | `false` | Disable auto clipboard copy |
 | `--no-reconnect` | `false` | Exit on disconnect instead of reconnecting |
@@ -88,15 +136,61 @@ mekong --token mkt_xxx 3000          # one-shot token override
 
 ---
 
+## Expiry values
+
+The `-e` / `--expire` flag accepts months, weeks, days, hours, or minutes:
+
+| Input | Meaning |
+|-------|---------|
+| `1m` or `1mo` | 1 month (30 days) |
+| `1w` | 1 week (7 days) |
+| `2w` | 2 weeks |
+| `1d` | 1 day |
+| `7d` | 7 days |
+| `48h` | 48 hours |
+| `48` | bare number = hours |
+| `30m` | 30 minutes (Go duration fallback) |
+
+When expiry is set, the tunnel banner shows the expiry time and `mekong ps` / `mekong status` reflect it. Idle timeout follows the requested expiry.
+
+---
+
+## Reserved Subdomain Lifetime Rules
+
+When using `-sd` / `--subdomain`, different limits apply:
+
+| | Anonymous tunnel | Reserved subdomain tunnel |
+|--|:--:|:--:|
+| Default lifetime | 24 hours | **1 week** |
+| Maximum lifetime | 1 week | **1 month** |
+
+```bash
+# Defaults to 1 week (no -e needed)
+mekong 3001 -d -sd onlyanime
+
+# Explicit 2 weeks
+mekong 3001 -d -sd onlyanime -e 2w
+
+# Maximum: 1 month
+mekong 3001 -d -sd onlyanime -e 1m
+
+# Error — exceeds 1 month limit
+mekong 3001 -d -sd onlyanime -e 2m
+#   error: requested expiry 2mo exceeds max 1mo
+#   note: reserved subdomains allow up to 1mo
+```
+
+---
+
 ## Examples
 
 ```bash
 # Anonymous — gets a random subdomain every time
 mekong 3000
 
-# Login once, then always get your reserved subdomain
+# Login once, then always use reserved subdomain
 mekong login
-mekong 3000                            # → https://myapp.mekongtunnel.dev
+mekong 3000                                      # → https://myapp.proxy.angkorsearch.dev
 
 # One-shot token without logging in
 mekong --token mkt_xxxxxxxxxxxx 3000
@@ -104,20 +198,31 @@ mekong --token mkt_xxxxxxxxxxxx 3000
 # Via environment variable (great for CI/CD)
 MEKONG_TOKEN=mkt_xxx mekong 3000
 
-# Auth management
-mekong whoami                          # show logged-in account
-mekong logout                          # remove saved credentials
+# Use a reserved subdomain with shorthand flag
+mekong 3001 -sd onlyanime
+mekong 3001 -d -sd onlyanime -e 1w
 
-# Expiry
-mekong 3000 --expire 1w
-mekong 3000 -e 48h
+# Skip browser warning page for visitors
+mekong 3001 --no-warning
+mekong 3001 -d -sd onlyanime --no-warning
+
+# Auth management
+mekong whoami                                    # show logged-in account
+mekong logout                                    # remove saved credentials
 
 # Daemon mode
-mekong -d 3000 --expire 24h
-mekong logs 3000
-mekong logs -f 3000
-mekong status
+mekong -d 3000 -e 1w
+mekong ps                                        # table view of all tunnels
+mekong logs onlyanime                            # logs by name
+mekong logs -f onlyanime                         # follow logs by name
+mekong logs 3000                                 # logs by port (still works)
+mekong status onlyanime                          # status by name
 mekong stop 3000
+
+# Log management
+mekong rm                                        # clear random tunnels; reserved are protected
+mekong rm -f                                     # force-clear all logs
+mekong rm -f onlyanime                           # clear logs for one named tunnel
 
 # Multiple ports
 mekong 3000 8080
@@ -129,9 +234,81 @@ mekong version
 
 ---
 
+## `mekong ps`
+
+Lists all active daemon tunnels in a Docker-style table. Only shows tunnels started with `-d`.
+
+```bash
+mekong ps
+```
+
+```
+TUNNEL ID                URL                                              PORT      STATUS       CREATED            EXPIRE
+onlyanime                https://onlyanime.proxy.angkorsearch.dev         :3001     Up 5h        5 hours ago        18h left
+topupml                  https://topupml.proxy.angkorsearch.dev           :3000     Up 2h        2 hours ago        6d left
+```
+
+Stale state files from dead processes are automatically cleaned up when `mekong ps` runs.
+
+---
+
+## `mekong rm`
+
+Clears daemon log entries from `~/.mekong/mekong.log`. Does **not** stop tunnels — use `mekong stop` for that.
+
+| Command | What it does |
+|---------|-------------|
+| `mekong rm` | Clears logs for random tunnels; reserved tunnels are **protected** |
+| `mekong rm -f` | Force-clears **all** logs |
+| `mekong rm -rf` | Same as `-f` |
+| `mekong rm -f <name>` | Clears logs for one specific reserved tunnel |
+
+```bash
+# Safe clear (reserved tunnels shown as warning)
+mekong rm
+
+# Force clear everything
+mekong rm -f
+
+# Clear only the onlyanime tunnel's logs
+mekong rm -f onlyanime
+```
+
+---
+
+## `mekong completion`
+
+Installs shell tab-completion so you can press `Tab` to autocomplete commands and tunnel names.
+
+```bash
+# Zsh (macOS default)
+mekong completion zsh >> ~/.zshrc && source ~/.zshrc
+
+# Bash
+mekong completion bash >> ~/.bashrc && source ~/.bashrc
+
+# Activate in current session only (no file change)
+eval "$(mekong completion zsh)"
+```
+
+What gets autocompleted:
+
+| Typing | Tab suggests |
+|--------|-------------|
+| `mekong <Tab>` | All commands |
+| `mekong logs <Tab>` | Active tunnel names |
+| `mekong stop <Tab>` | Active tunnel names |
+| `mekong rm <Tab>` | Active tunnel names |
+| `mekong subdomain delete <Tab>` | Your reserved subdomains (API) |
+| `mekong help <Tab>` | Available help topics |
+
+Tunnel name completion reads local state instantly (no network). Subdomain completion calls the API and requires login.
+
+---
+
 ## `mekong login`
 
-Opens `mekongtunnel.dev/cli-auth` in your browser. After you approve, the CLI saves your token to `~/.mekong/config.json` and all future tunnels automatically use your reserved subdomain.
+Opens the MekongTunnel auth page in your browser. After you approve, the CLI saves your token to `~/.mekong/config.json`.
 
 ```bash
 mekong login
@@ -139,7 +316,7 @@ mekong login
 
 ```
   Open this URL to log in:
-  https://mekongtunnel.dev/cli-auth?session=xxxxxxxx
+  https://angkorsearch.dev/cli-auth?session=xxxxxxxx
 
   Waiting for authorization.....
   ✔  Logged in as you@example.com
@@ -180,43 +357,69 @@ mekong whoami
 
 ---
 
-## Expiry values
-
-Accepted formats:
-
-| Value | Duration |
-|-------|----------|
-| `30m` | 30 minutes |
-| `1h`, `6h`, `24h`, `48h` | hours |
-| `1d`, `2d` | days |
-| `1w`, `2week` | weeks |
-| `48` | bare number = hours |
-
-When expiry is set, the tunnel banner shows the expiry time and `mekong status` reflects it. Idle timeout follows the requested expiry.
-
----
-
 ## Daemon Mode
 
 ```bash
-mekong -d 3000 --expire 24h
+mekong -d 3000 -e 1w
 ```
 
 ```
 ✔  mekong running in background
-   PID      48291
-   Logs     mekong logs 3000
-   Follow   mekong logs -f 3000
-   Status   mekong status 3000
-   Stop     mekong stop 3000
-   Stop all mekong stop --all
+   PID     48291  [:3000]
+   Logs    ~/.mekong/mekong.log
+   View    mekong logs 3000
+   Follow  mekong logs -f 3000
+   Stop    mekong stop 3000
+   StopAll mekong stop --all
+   Status  mekong status
 ```
 
 - Terminal is freed immediately
 - All output goes to `~/.mekong/mekong.log`
-- State is saved to `~/.mekong/` (readable only by your user)
+- State is saved to `~/.mekong/tunnels/` (readable only by your user)
 - QR and clipboard are disabled automatically in daemon mode
-- Token is passed through to the daemon process — your reserved subdomain works in daemon mode too
+- Token is passed through — your reserved subdomain works in daemon mode too
+
+---
+
+## Shortcuts & Aliases
+
+| Alias | Expands to |
+|-------|-----------|
+| `mekong sd` | `mekong subdomain` |
+| `mekong dm` | `mekong domain` |
+| `-sd` | `--subdomain` |
+
+**Prefix command matching** — any unique prefix resolves automatically:
+
+| You type | Resolves to |
+|----------|-------------|
+| `mekong dom` | `mekong domain` |
+| `mekong sub` | `mekong subdomain` |
+| `mekong log` | `mekong logs` |
+| `mekong upd` | `mekong update` |
+| `mekong who` | `mekong whoami` |
+| `mekong det` | `mekong detect` |
+| `mekong doc` | `mekong doctor` |
+| `mekong st` | _(ambiguous: `status`, `stop`)_ — shows error |
+
+---
+
+## Smart Error Handling
+
+When you type an unknown command, the CLI suggests the closest match using edit-distance (Levenshtein) matching. Any typo within 2 character edits triggers a suggestion.
+
+```
+$ mekong statsu
+  error: unknown command "statsu"
+
+  Did you mean:  mekong status
+
+$ mekong logz
+  error: unknown command "logz"
+
+  Did you mean:  mekong logs
+```
 
 ---
 
@@ -224,27 +427,63 @@ mekong -d 3000 --expire 24h
 
 ```bash
 mekong status
+mekong status onlyanime     # filter by name
+mekong status 3000          # filter by port
 ```
 
 ```
-Active tunnels
-─────────────────────────────────────────────────────
-Subdomain  myapp
-URL        https://myapp.mekongtunnel.dev
-Local      localhost:3000
-PID        48291
-Expires    Mar 20, 2026 at 15:04 UTC (or 1w idle)
-Uptime     14m32s
-─────────────────────────────────────────────────────
+  ─────────────────────────────────────────────────────
+  Active tunnels
+  ─────────────────────────────────────────────────────
+  URL        https://onlyanime.proxy.angkorsearch.dev
+  Local      localhost:3001
+  PID        48291
+  Uptime     5h12m3s
+  Expires    2026-04-11 10:04:00 UTC
+  ─────────────────────────────────────────────────────
 ```
 
 ---
 
 ## Auto-reconnect
 
-The CLI reconnects automatically with exponential backoff (2 s → 4 s → … up to 60 s). If your IP is blocked, it stops immediately to avoid making the block worse.
+The CLI reconnects automatically with exponential backoff (2 s → 4 s → … up to 60 s). If your IP is blocked, it stops immediately to avoid worsening the block.
 
 Disable with `--no-reconnect`.
+
+---
+
+## PHP / Laravel / Laragon / XAMPP / WAMP
+
+For local virtual-host stacks, set `--upstream-host` so the app receives the Host header it expects:
+
+```bash
+# Laravel built-in server
+php artisan serve --host=127.0.0.1 --port=8000
+mekong 8000
+
+# Apache vhost (Laragon, XAMPP, WAMP)
+mekong 80 --upstream-host myapp.test
+mekong init --port 80 --upstream-host myapp.test
+
+# WordPress
+mekong 80 --upstream-host wordpress.test
+```
+
+---
+
+## Project Config (`.mekong.json`)
+
+Run `mekong init` in your project directory to auto-detect your stack and write `.mekong.json`. After that, plain `mekong` with no arguments uses the saved port.
+
+```bash
+mekong init                            # auto-detect stack + port
+mekong init --port 8080                # override port
+mekong init --port 80 --upstream-host myapp.test
+mekong detect --json                   # inspect detection output
+```
+
+Supported fields: `port`, `upstream_host`, `start`, `stack`.
 
 ---
 
@@ -254,19 +493,71 @@ Use `ssh` directly if you prefer not to install the binary:
 
 ```bash
 # Anonymous
-ssh -t -R 80:localhost:3000 mekongtunnel.dev
+ssh -t -R 80:localhost:3000 proxy.angkorsearch.dev
 
 # With token (reserved subdomain)
 ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
-    -t -R 80:localhost:3000 mekongtunnel.dev
+    -t -R 80:localhost:3000 proxy.angkorsearch.dev
 
 # With expiry
-ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 mekongtunnel.dev
+ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 proxy.angkorsearch.dev
 
 # Both at once
 ssh -o SendEnv="MEKONG_API_TOKEN MEKONG_EXPIRE" \
     -o SetEnv="MEKONG_API_TOKEN=mkt_xxx MEKONG_EXPIRE=48h" \
-    -t -R 80:localhost:3000 mekongtunnel.dev
+    -t -R 80:localhost:3000 proxy.angkorsearch.dev
 ```
 
 > The `-t` flag is required. Without it the server cannot display the URL.
+
+---
+
+## Quick Reference Card
+
+```
+TUNNEL MANAGEMENT
+  mekong ps                        Table view of active tunnels
+  mekong status [name|port]        Detailed view of active tunnels
+  mekong stop [port] [--all]       Stop background tunnel(s)
+  mekong logs [-f] [name|port]     Show or follow daemon logs
+  mekong rm                        Clear logs (reserved tunnels protected)
+  mekong rm -f                     Force-clear all logs
+  mekong rm -f <name>              Clear logs for one named tunnel
+
+STARTING TUNNELS
+  mekong <port>                    Expose local port (random URL)
+  mekong <port> -d                 Run in background
+  mekong <port> -d -sd <name>      Use reserved subdomain (default 1w)
+  mekong <port> -d -sd <name> -e 1m  Reserve for up to 1 month
+  mekong <port> --no-warning       Skip browser warning page for visitors
+
+SUBDOMAINS
+  mekong sd                        List reserved subdomains
+  mekong subdomain <name>          Reserve a new subdomain
+  mekong subdomain delete <name>   Delete (asks to confirm)
+  mekong subdomain delete <name> --yes  Delete without confirmation
+
+CUSTOM DOMAINS
+  mekong dm                        List custom domains
+  mekong domain add <d>            Add a custom domain
+  mekong domain connect <d> <sub>  Add + verify + target in one step
+  mekong domain delete <d> --yes   Delete without confirmation
+
+SHELL COMPLETION
+  mekong completion zsh >> ~/.zshrc && source ~/.zshrc   Install (zsh)
+  mekong completion bash >> ~/.bashrc && source ~/.bashrc Install (bash)
+  eval "$(mekong completion zsh)"  Activate in current session only
+
+AUTH
+  mekong login                     Sign in
+  mekong logout                    Sign out
+  mekong whoami                    Show current account
+
+ALIASES & SHORTCUTS
+  sd   →  subdomain                dm   →  domain
+  mekong dom  →  domain            mekong sub  →  subdomain
+  mekong log  →  logs              mekong doc  →  doctor
+  -sd  →  --subdomain              -e   →  --expire
+  -p   →  --port                   -d   →  daemon mode
+  -v   →  --version
+```
