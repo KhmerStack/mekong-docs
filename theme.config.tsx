@@ -1,16 +1,49 @@
 import React from 'react'
 import { DocsThemeConfig, useConfig } from 'nextra-theme-docs'
 import { useRouter } from 'next/router'
-import Image from 'next/image'
 import { ThemeToggle } from './components/ThemeToggle'
 
 const OG_IMAGE = 'https://onhyewqcjmwup3zj.public.blob.vercel-storage.com/opengraph.png'
 const SITE_URL = 'https://mekongtunnel.dev'
+const DOCS_REPO_URL = 'https://github.com/KhmerStack/mekong-docs'
+const DOCS_REPO_EDIT_BASE = `${DOCS_REPO_URL}/blob/main`
+const DOCS_REPO_ISSUES_BASE = `${DOCS_REPO_URL}/issues/new`
+
+type DocsIssueOptions = {
+  title: string
+  labels?: string
+  pagePath?: string
+  pageTitle?: string
+}
+
+function buildDocsIssueUrl({
+  title,
+  labels,
+  pagePath = '/',
+  pageTitle = 'Documentation page',
+}: DocsIssueOptions) {
+  const params = new URLSearchParams({
+    title,
+    ...(labels ? { labels } : {}),
+    body: [
+      'Page details',
+      '',
+      `- Title: ${pageTitle}`,
+      `- Path: ${pagePath}`,
+      `- URL: ${SITE_URL}${pagePath}`,
+      '',
+      'What would you like to report or change?',
+      '<!-- Add details here -->',
+    ].join('\n'),
+  })
+
+  return `${DOCS_REPO_ISSUES_BASE}?${params.toString()}`
+}
 
 const config: DocsThemeConfig = {
   logo: (
     <span className="flex items-center gap-2.5 font-bold tracking-tight">
-      <Image
+      <img
         src="/MekongNoBG.png"
         alt="MekongTunnel"
         width={36}
@@ -22,10 +55,10 @@ const config: DocsThemeConfig = {
   ),
 
   project: {
-    link: 'https://github.com/mekongtunnel',
+    link: DOCS_REPO_URL,
   },
 
-  docsRepositoryBase: 'https://github.com/mekongtunnel/docs/blob/main',
+  docsRepositoryBase: DOCS_REPO_EDIT_BASE,
 
   useNextSeoProps() {
     const { asPath } = useRouter()
@@ -108,7 +141,7 @@ const config: DocsThemeConfig = {
       }
       return <>{title}</>
     },
-    defaultMenuCollapseLevel: Infinity,
+    defaultMenuCollapseLevel: 99,
     toggleButton: true,
   },
 
@@ -116,18 +149,6 @@ const config: DocsThemeConfig = {
   toc: {
     backToTop: true,
     title: 'On this page',
-    extraContent: (
-      <div className="nx-mt-6 nx-pt-4 nx-border-t nx-border-gray-200 dark:nx-border-gray-700">
-        <a
-          href="https://github.com/mekongtunnel/docs/issues/new"
-          target="_blank"
-          rel="noreferrer"
-          className="nx-text-xs nx-text-gray-500 dark:nx-text-gray-400 hover:nx-text-blue-500 dark:hover:nx-text-blue-400 nx-transition-colors"
-        >
-          Report a bug or request a feature ↗
-        </a>
-      </div>
-    ),
   },
 
   search: {
@@ -135,12 +156,29 @@ const config: DocsThemeConfig = {
   },
 
   feedback: {
-    content: 'Was this page helpful?',
+    content: 'Raise issue',
     labels: 'feedback',
+    useLink() {
+      const config = useConfig()
+      const { asPath } = useRouter()
+      const pageTitle =
+        typeof config.title === 'string'
+          ? config.title
+          : typeof config.frontMatter?.title === 'string'
+            ? config.frontMatter.title
+            : 'Documentation page'
+
+      return buildDocsIssueUrl({
+        title: `Docs feedback: ${pageTitle}`,
+        labels: config.feedback.labels,
+        pagePath: asPath,
+        pageTitle,
+      })
+    },
   },
 
   editLink: {
-    text: 'Edit this page on GitHub',
+    text: 'Suggest edits',
   },
 
   footer: {

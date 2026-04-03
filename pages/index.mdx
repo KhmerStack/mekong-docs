@@ -15,11 +15,21 @@ Run one command and expose any local port to the internet with a public HTTPS UR
 mekong 3000
 ```
 
+Or use plain SSH with no install:
+
+```bash
+ssh -t -R 80:localhost:3000 proxy.angkorsearch.dev
+```
+
 You get a unique public URL instantly:
 
 ```
 https://happy-tiger-a1b2.mekongtunnel.dev
 ```
+
+## Why "MekongTunnel"?
+
+`Mekong` represents connection, steady flow, and scale across the region. `Tunnel` is the secure bridge from your local machine to the public internet. Together, **MekongTunnel** means a smooth, reliable path from local development to a public URL.
 
 ## Get Started
 

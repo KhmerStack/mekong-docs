@@ -1,7 +1,6 @@
 import type { AppProps } from 'next/app'
 import { Kantumruy_Pro } from 'next/font/google'
 import { OfflineBanner } from '@/components/OfflineBanner'
-import '@/styles/globals.css'
 
 const kantumruyPro = Kantumruy_Pro({
   subsets: ['khmer', 'latin'],
@@ -10,7 +9,7 @@ const kantumruyPro = Kantumruy_Pro({
   display: 'swap',
 })
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function AppShell({ Component, pageProps }: AppProps) {
   return (
     <main className={`${kantumruyPro.variable} font-sans`}>
       <Component {...pageProps} />

@@ -116,8 +116,10 @@ If you use `ssh` directly instead of the mekong CLI, pass the token as an enviro
 
 ```bash
 ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
-    -t -R 80:localhost:3000 mekongtunnel.dev
+    -t -R 80:localhost:3000 proxy.angkorsearch.dev
 ```
+
+You can combine this with `MEKONG_EXPIRE=48h` if you want a specific tunnel lifetime.
 
 ---
 

@@ -117,17 +117,24 @@ Install once, use everywhere — official packages for Node.js, Python, and VS C
 Skip the CLI entirely and use the `ssh` command you already have.
 
 ```bash
-# Basic
-ssh -t -R 80:localhost:3000 mekongtunnel.dev
+# Anonymous
+ssh -t -R 80:localhost:3000 proxy.angkorsearch.dev
 
-# With keep-alive (recommended)
-ssh -t -R 80:localhost:3000 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 mekongtunnel.dev
+# With token (reserved subdomain)
+ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
+    -t -R 80:localhost:3000 proxy.angkorsearch.dev
 
 # With expiry
-ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 mekongtunnel.dev
+ssh -o SetEnv=MEKONG_EXPIRE=48h \
+    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+
+# Both at once
+ssh -o SendEnv="MEKONG_API_TOKEN MEKONG_EXPIRE" \
+    -o SetEnv="MEKONG_API_TOKEN=mkt_xxx MEKONG_EXPIRE=48h" \
+    -t -R 80:localhost:3000 proxy.angkorsearch.dev
 ```
 
-Replace `3000` with your local port. The `-t` flag is required, or the server cannot display your tunnel URL.
+Replace `3000` with your local port. The `-t` flag is required, or the server cannot display your tunnel URL. If you want extra keep-alive protection, add `-o ServerAliveInterval=60 -o ServerAliveCountMax=3`.
 
 ---
 

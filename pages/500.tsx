@@ -2,9 +2,24 @@ import React from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 import { ServerCrash, ArrowLeft, RefreshCw } from 'lucide-react'
 
 export default function ServerError() {
+  const { asPath } = useRouter()
+  const issueUrl = `https://github.com/KhmerStack/mekong-docs/issues/new?${new URLSearchParams({
+    title: 'Docs 500 error report',
+    labels: 'bug',
+    body: [
+      'Page details',
+      '',
+      `- Path: ${asPath || '/500'}`,
+      '',
+      'What happened?',
+      '<!-- Add details here -->',
+    ].join('\n'),
+  }).toString()}`
+
   return (
     <>
       <Head>
@@ -53,7 +68,7 @@ export default function ServerError() {
           <p className="mt-8 text-xs text-muted-foreground">
             If this keeps happening, please{' '}
             <a
-              href="https://github.com/mekongtunnel/docs/issues/new"
+              href={issueUrl}
               target="_blank"
               rel="noreferrer"
               className="underline hover:text-foreground transition-colors"
