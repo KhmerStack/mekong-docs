@@ -1,6 +1,7 @@
 import React from 'react'
 import { DocsThemeConfig, useConfig } from 'nextra-theme-docs'
 import { useRouter } from 'next/router'
+import DocsSearch from './components/DocsSearch'
 import { ThemeToggle } from './components/ThemeToggle'
 
 const OG_IMAGE = 'https://onhyewqcjmwup3zj.public.blob.vercel-storage.com/opengraph.png'
@@ -152,6 +153,7 @@ const config: DocsThemeConfig = {
   },
 
   search: {
+    component: DocsSearch,
     placeholder: 'Search docs...',
   },
 

@@ -4,6 +4,7 @@ const withNextra = nextra({
   theme: 'nextra-theme-docs',
   themeConfig: './theme.config.tsx',
   defaultShowCopyCode: true,
+  flexsearch: true,
   readingTime: true,
 })
 
@@ -19,6 +20,16 @@ export default withNextra({
       {
         source: '/docs/index.html',
         destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/docs/node-:slug',
+        destination: '/docs/node/:slug',
+        permanent: true,
+      },
+      {
+        source: '/docs/python-:slug',
+        destination: '/docs/python/:slug',
         permanent: true,
       },
     ]

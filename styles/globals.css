@@ -230,6 +230,20 @@ footer.nextra-footer {
 }
 
 /* ─── Search modal ───────────────────────────────────────────── */
-.nextra-search-results {
-  @apply !max-w-[calc(100vw-2rem)] sm:!max-w-lg;
+.docs-search-wrapper input[type='search'] {
+  -webkit-appearance: none;
+}
+
+@media (min-width: 1024px) {
+  .nextra-nav-container nav {
+    position: relative;
+  }
+
+  .nextra-nav-container nav > .docs-search-wrapper {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(32rem, calc(100vw - 28rem));
+    max-width: 100%;
+  }
 }
