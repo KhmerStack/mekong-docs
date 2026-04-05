@@ -9,7 +9,7 @@ export type SearchResult = {
   title: string
   pageTitle: string
   excerpt: string
-  version: string
+  version?: string
 }
 
 // ─── MDX text extraction ──────────────────────────────────────────
