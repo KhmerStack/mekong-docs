@@ -1,0 +1,231 @@
+---
+title: Node.js / npm
+description: mekong-cli — CLI tool, JavaScript SDK, and auth helpers for Node.js projects.
+---
+
+# Node.js / npm — mekong-cli
+
+**mekong-cli** is the official npm package for MekongTunnel. It provides:
+
+- A `mekong-cli` binary that wraps your dev server and tunnel in one command
+- A JavaScript / TypeScript **SDK** (`require('mekong-cli/sdk')`) for programmatic use
+- Auth helpers that read your saved login token automatically
+
+**npm:** [npmjs.com/package/mekong-cli](https://www.npmjs.com/package/mekong-cli)
+
+---
+
+## Installation
+
+```bash
+# Global (makes mekong-cli available everywhere)
+npm install -g mekong-cli
+
+# Per-project
+npm install --save-dev mekong-cli
+yarn add -D mekong-cli
+pnpm add -D mekong-cli
+```
+
+> The `mekong` binary (Go) is required separately. See [Installation](/docs/installation).
+
+---
+
+## Quick start — CLI
+
+```bash
+# Tunnel an already-running server on port 3000
+mekong-cli 3000
+
+# Start dev server + tunnel together
+mekong-cli --with "next dev" --port 3000
+mekong-cli --with "vite"     --port 5173
+
+# With reserved subdomain (after mekong login)
+mekong-cli 3000
+# → https://myapp.mekongtunnel.dev   (same URL every time)
+
+# Or pass token explicitly
+mekong-cli --token mkt_xxx 3000
+
+# Via env var
+MEKONG_TOKEN=mkt_xxx mekong-cli 3000
+```
+
+---
+
+## CLI options
+
+| Option | Description |
+|--------|-------------|
+| `--with "<cmd>"` | Shell command to start the dev server before tunneling |
+| `--port <n>` / `-p <n>` | Local port (auto-detected from `package.json` if omitted) |
+| `--token <tok>` | API token for reserved subdomain (env: `MEKONG_TOKEN`) |
+| `--expire <val>` | Tunnel lifetime — e.g. `2h`, `1d`, `1w` |
+| `--daemon` / `-d` | Run tunnel in background |
+| `--no-qr` | Suppress QR code output |
+| `--mekong <path>` | Custom path to the mekong binary |
+
+Token resolution order: `--token` flag → `MEKONG_TOKEN` env → `~/.mekong/config.json` (written by `mekong login`).
+
+---
+
+## `mekong-cli init`
+
+Auto-detect your framework and inject a `dev:tunnel` script into `package.json`:
+
+```bash
+mekong-cli init
+```
+
+```json
+{
+  "scripts": {
+    "dev":        "next dev",
+    "dev:tunnel": "mekong-cli --with \"next dev\" --port 3000"
+  }
+}
+```
+
+Then just run:
+
+```bash
+npm run dev:tunnel
+```
+
+---
+
+## JavaScript / TypeScript SDK
+
+Use the SDK to control tunnels programmatically — great for test setups, integration tests, or custom tooling.
+
+```ts
+const mekong = require('mekong-cli/sdk')
+// ESM / TypeScript:
+// import mekong from 'mekong-cli/sdk'
+```
+
+### `expose(port, opts?)` → `Promise<{ url, stop }>`
+
+Start a tunnel and get the public URL:
+
+```ts
+const { url, stop } = await mekong.expose(3000)
+console.log('Public:', url)   // https://myapp.mekongtunnel.dev
+
+// Stop when done
+stop()
+```
+
+With options:
+
+```ts
+const { url, stop } = await mekong.expose(3000, {
+  token:  'mkt_xxx',   // override saved token
+  expire: '2h',
+  noQr:   true,        // suppresses QR (default true in SDK mode)
+})
+```
+
+> Token resolution: `opts.token` → `MEKONG_TOKEN` env → `~/.mekong/config.json`.
+
+### `login()` → `Promise<string>`
+
+Authenticate via the browser device flow — same as `mekong login` in the terminal:
+
+```ts
+const token = await mekong.login()
+// Opens mekongtunnel.dev/cli-auth in the browser,
+// polls until you approve, then saves ~/.mekong/config.json.
+console.log('Token:', token)
+```
+
+### `logout()`
+
+Remove saved credentials:
+
+```ts
+mekong.logout()
+```
+
+### `whoami()` → `object | null`
+
+Return saved auth config:
+
+```ts
+const info = mekong.whoami()
+// { token: 'mkt_xxx', email: 'you@example.com' }  or  null
+```
+
+### `getToken()` → `string | null`
+
+Read the token from env or saved config without starting anything:
+
+```ts
+const token = mekong.getToken()
+```
+
+---
+
+## Vitest / Jest integration example
+
+```ts
+import { beforeAll, afterAll, describe, it, expect } from 'vitest'
+const mekong = require('mekong-cli/sdk')
+
+let tunnel: { url: string; stop: () => void }
+
+beforeAll(async () => {
+  tunnel = await mekong.expose(3000)
+  process.env.PUBLIC_URL = tunnel.url
+})
+
+afterAll(() => tunnel?.stop())
+
+describe('public tunnel', () => {
+  it('returns 200 from the public URL', async () => {
+    const res = await fetch(process.env.PUBLIC_URL!)
+    expect(res.status).toBe(200)
+  })
+})
+```
+
+---
+
+## package.json scripts examples
+
+```json
+{
+  "scripts": {
+    "dev":             "next dev",
+    "dev:tunnel":      "mekong-cli --with \"next dev\" --port 3000",
+    "dev:tunnel:bg":   "mekong-cli --with \"next dev\" --port 3000 --daemon",
+    "preview:tunnel":  "mekong-cli 3000"
+  }
+}
+```
+
+---
+
+## Framework guides
+
+| Framework | Port | Guide |
+|-----------|------|-------|
+| Next.js | 3000 | [Next.js](/docs/node/nextjs) |
+| Vite | 5173 | [Vite](/docs/node/vite) |
+| Nuxt | 3000 | [Nuxt](/docs/node/nuxt) |
+| Remix | 5173 | [Remix](/docs/node/remix) |
+| SvelteKit | 5173 | [SvelteKit](/docs/node/sveltekit) |
+| Astro | 4321 | [Astro](/docs/node/astro) |
+| Express / Fastify | 3000 | [Express / Fastify](/docs/node/express) |
+
+---
+
+## Version
+
+Current version: **v2.0.0** — [npmjs.com/package/mekong-cli](https://www.npmjs.com/package/mekong-cli)
+
+## Requirements
+
+- Node.js 18+
+- `mekong` binary installed — see [Installation](/docs/installation)

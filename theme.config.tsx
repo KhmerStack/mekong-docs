@@ -3,6 +3,25 @@ import { DocsThemeConfig, useConfig } from 'nextra-theme-docs'
 import { useRouter } from 'next/router'
 import DocsSearch from './components/DocsSearch'
 import { ThemeToggle } from './components/ThemeToggle'
+import { VersionSwitcher } from './components/VersionSwitcher'
+import { VERSIONS, LATEST_VERSION } from './lib/versions'
+
+/**
+ * Hides its parent <li> in the sidebar via DOM walk.
+ * Used to hide version folders that are not currently active.
+ */
+function HiddenVersionFolder() {
+  const ref = React.useRef<HTMLSpanElement>(null)
+  React.useEffect(() => {
+    let el: HTMLElement | null = ref.current?.parentElement ?? null
+    while (el && el.tagName.toLowerCase() !== 'li') {
+      el = el.parentElement
+    }
+    if (el) el.style.display = 'none'
+    return () => { if (el) el.style.display = '' }
+  }, [])
+  return <span ref={ref} style={{ display: 'none' }} />
+}
 
 const OG_IMAGE = 'https://onhyewqcjmwup3zj.public.blob.vercel-storage.com/opengraph.png'
 const SITE_URL = 'https://mekongtunnel.dev'
@@ -112,6 +131,7 @@ const config: DocsThemeConfig = {
   navbar: {
     extraContent: (
       <div className="flex items-center gap-1">
+        <VersionSwitcher />
         <ThemeToggle />
         <a
           href={SITE_URL}
@@ -133,6 +153,20 @@ const config: DocsThemeConfig = {
   // Sidebar
   sidebar: {
     titleComponent({ title, type }) {
+      const { asPath } = useRouter()
+      const [mounted, setMounted] = React.useState(false)
+      React.useEffect(() => { setMounted(true) }, [])
+
+      // Only hide on client to avoid SSR hydration mismatch
+      if (mounted && VERSIONS.some(v => v.id === title)) {
+        const activeId =
+          VERSIONS.find(v => asPath.startsWith(`/docs/${v.id}/`) || asPath === `/docs/${v.id}`)?.id
+          ?? LATEST_VERSION
+        if (title !== activeId) {
+          return <HiddenVersionFolder />
+        }
+      }
+
       if (type === 'separator') {
         return (
           <span className="nx-cursor-default nx-flex nx-items-center nx-gap-2">
@@ -142,7 +176,7 @@ const config: DocsThemeConfig = {
       }
       return <>{title}</>
     },
-    defaultMenuCollapseLevel: 99,
+    defaultMenuCollapseLevel: Infinity,
     toggleButton: true,
   },
 

@@ -1,0 +1,90 @@
+---
+title: Stats API
+description: The web dashboard and JSON metrics endpoint available on localhost:9090.
+---
+
+import { Callout } from 'nextra/components'
+
+# Stats API
+
+MekongTunnel exposes a live admin dashboard and a JSON metrics endpoint on `127.0.0.1:9090`. Both are only accessible from loopback — external requests are rejected with `403 Forbidden`.
+
+## Web Dashboard
+
+```
+http://127.0.0.1:9090/
+```
+
+A live HTML dashboard for server operators. It shows:
+
+- Active tunnel count
+- Total requests served
+- Total SSH connections
+- Blocked IPs count
+- Live table of all active tunnels: subdomain, client IP, uptime, request count
+
+The dashboard **auto-refreshes every 3 seconds** — no page reload needed.
+
+---
+
+## JSON API
+
+```
+GET http://127.0.0.1:9090/api/stats
+```
+
+Returns current server metrics as JSON. Useful for monitoring tools, shell scripts, or custom dashboards.
+
+### Response
+
+```json
+{
+  "active_tunnels": 3,
+  "total_requests": 1247,
+  "total_connections": 15,
+  "blocked_ips": 1,
+  "tunnels": [
+    { "subdomain": "myapp",            "client_ip": "1.2.3.4", "uptime_secs": 842, "request_count": 120 },
+    { "subdomain": "happy-tiger-a1b2", "client_ip": "5.6.7.8", "uptime_secs": 310, "request_count": 45  }
+  ]
+}
+```
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `active_tunnels` | integer | Number of currently open tunnels |
+| `total_requests` | integer | Total HTTP requests proxied since server start |
+| `total_connections` | integer | Total SSH connections accepted since server start |
+| `blocked_ips` | integer | Number of currently active (non-expired) IP blocks |
+| `tunnels` | array | Per-tunnel details: subdomain, client IP, uptime, request count |
+
+---
+
+## Examples
+
+```bash
+# Get JSON stats
+curl http://127.0.0.1:9090/api/stats
+
+# Pretty-print
+curl -s http://127.0.0.1:9090/api/stats | jq .
+
+# Watch active tunnel count every 30 seconds
+watch -n 30 'curl -s http://127.0.0.1:9090/api/stats | jq .active_tunnels'
+```
+
+---
+
+## Port configuration
+
+The stats port can be changed with the `STATS_ADDR` environment variable:
+
+```env
+STATS_ADDR=127.0.0.1:9091
+```
+
+<Callout type="warning">
+Setting `STATS_ADDR` to a public address is not recommended — the endpoint has no authentication.
+</Callout>

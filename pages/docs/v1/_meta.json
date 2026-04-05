@@ -1,0 +1,43 @@
+{
+  "-- Getting Started": {
+    "type": "separator",
+    "title": "Get Started"
+  },
+  "getting-started": "Getting Started",
+  "installation": "Installation",
+  "how-it-works": "How It Works",
+  "-- Configuration": {
+    "type": "separator",
+    "title": "Configuration"
+  },
+  "configuration": "Configuration",
+  "cli-reference": "CLI Reference",
+  "npm-cli": "NPM CLI",
+  "vscode-extension": "VS Code Extension",
+  "-- Node.js": {
+    "type": "separator",
+    "title": "Node.js Frameworks"
+  },
+  "node": "Node.js",
+  "-- Python": {
+    "type": "separator",
+    "title": "Python Frameworks"
+  },
+  "python": "Python",
+  "-- Advanced": {
+    "type": "separator",
+    "title": "Advanced"
+  },
+  "authentication": "Authentication",
+  "stats-api": "Stats API",
+  "self-hosting": "Self-Hosting",
+  "security": "Security",
+  "cookies": "Cookies",
+  "-- Legal": {
+    "type": "separator",
+    "title": "Legal"
+  },
+  "faq": "FAQ",
+  "terms": "Terms of Service",
+  "privacy": "Privacy Policy"
+}

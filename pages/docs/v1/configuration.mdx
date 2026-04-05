@@ -1,0 +1,100 @@
+---
+title: Configuration
+description: All environment variables for configuring the MekongTunnel server.
+---
+
+# Configuration
+
+The MekongTunnel server is configured entirely via environment variables. No config file required.
+
+## Setup
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+## Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DOMAIN` | `muyleanging.com` | Your domain — tunnels become subdomains of this |
+| `SSH_ADDR` | `:22` | SSH server listen address |
+| `HTTP_ADDR` | `:80` | HTTP redirect server address |
+| `HTTPS_ADDR` | `:443` | HTTPS proxy server address |
+| `STATS_ADDR` | `127.0.0.1:9090` | Metrics endpoint (localhost only) |
+| `MAX_TUNNELS_PER_IP` | `1000` | Max concurrent tunnels per IP (v1.4.1+) |
+| `MAX_TOTAL_TUNNELS` | `0` | Max total active tunnels — `0` means unlimited (v1.4.7+) |
+| `MAX_CONNECTIONS_PER_MINUTE` | `0` | Max new SSH connections per IP per minute — `0` means unlimited (v1.4.7+) |
+| `HOST_KEY_PATH` | `host_key` | SSH host key file path (auto-generated if missing) |
+| `TLS_CERT` | `/certs/fullchain.pem` | TLS certificate path (inside container) |
+| `TLS_KEY` | `/certs/privkey.pem` | TLS private key path (inside container) |
+
+## Example `.env`
+
+```env
+# Domain — tunnels become subdomains of this
+DOMAIN=yourdomain.com
+
+# Server ports
+SSH_ADDR=:22
+HTTP_ADDR=:80
+HTTPS_ADDR=:443
+STATS_ADDR=127.0.0.1:9090
+
+# Per-IP tunnel limit (default: 1000)
+MAX_TUNNELS_PER_IP=1000
+
+# Total tunnel limit — 0 means unlimited (default: 0)
+MAX_TOTAL_TUNNELS=0
+
+# Max new SSH connections per IP per minute — 0 means unlimited (default: 0)
+MAX_CONNECTIONS_PER_MINUTE=0
+
+# SSH host key (auto-generated on first run)
+HOST_KEY_PATH=/host_key
+
+# TLS certificates
+TLS_CERT=/certs/fullchain.pem
+TLS_KEY=/certs/privkey.pem
+```
+
+## Hard-coded limits
+
+The following limits are compile-time constants (in `internal/config/config.go`). To change them, rebuild the binary:
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `MaxTotalTunnels` | `0 (unlimited)` | Max total active tunnels — 0 disables the cap |
+| `RequestsPerSecond` | `10` | Per-tunnel HTTP rate limit |
+| `BurstSize` | `20` | Per-tunnel burst allowance |
+| `MaxConnectionsPerMinute` | `0 (unlimited)` | New SSH connections per IP per minute — 0 disables the cap |
+| `BlockDuration` | `disabled` | Auto-blocking is off by default since v1.4.8 |
+| `RateLimitViolationsMax` | `0 (disabled)` | Auto-block threshold — 0 disables auto-blocking |
+| `InactivityTimeout` | `2 hours` | Tunnel closes after this idle period |
+| `MaxTunnelLifetime` | `24 hours` | Max tunnel duration regardless of activity |
+| `MaxRequestBodySize` | `1 GB` | Max incoming request body size |
+| `MaxResponseBodySize` | `1 GB` | Max response body size |
+| `WebSocketIdleTimeout` | `2 hours` | WebSocket idle timeout |
+| `MaxWebSocketTransfer` | `0 (unlimited)` | Max bytes per WebSocket direction — 0 disables the cap |
+
+## Running multiple instances
+
+```bash
+# Production instance
+DOMAIN=yourdomain.com ./bin/mekongtunnel
+
+# Dev instance on alternate ports
+SSH_ADDR=:2223 \
+HTTP_ADDR=:8080 \
+HTTPS_ADDR=:8443 \
+STATS_ADDR=127.0.0.1:9091 \
+DOMAIN=yourdomain.com \
+./bin/mekongtunnel
+```
+
+Connect to the dev instance via raw SSH:
+
+```bash
+ssh -t -R 80:localhost:5173 yourdomain.com -p 2223
+```

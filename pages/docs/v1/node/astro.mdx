@@ -1,0 +1,212 @@
+---
+title: Astro
+description: Expose your Astro dev server with a public tunnel URL
+---
+
+Astro is a content-first web framework that ships zero JS by default. Tunnel it to share static sites, test SSR endpoints, or demo island components on real devices.
+
+## Quick Start
+
+```bash
+npm install -g mekong-cli
+mekong auth YOUR_TOKEN
+```
+
+```bash
+# Terminal 1
+npm run dev        # Astro starts on http://localhost:4321
+
+# Terminal 2
+mekong 4321
+# → https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+Or together:
+
+```bash
+npx concurrently "astro dev" "mekong 4321"
+```
+
+## package.json Scripts
+
+```json
+{
+  "scripts": {
+    "dev": "astro dev",
+    "tunnel": "mekong 4321",
+    "dev:share": "concurrently \"astro dev\" \"mekong 4321\""
+  }
+}
+```
+
+## Custom Port
+
+```ts
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  server: { port: 3000 },
+})
+```
+
+```bash
+mekong 3000
+```
+
+## Auto-Tunnel Integration
+
+```ts
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+import { createTunnel } from 'mekong-cli'
+
+let tunnel
+
+export default defineConfig({
+  integrations: [
+    {
+      name: 'mekong-tunnel',
+      hooks: {
+        'astro:server:start': async ({ address }) => {
+          const port = address.port
+          tunnel = await createTunnel({ port })
+          console.log(`\n  ➜  Tunnel:  ${tunnel.url}\n`)
+        },
+        'astro:server:done': async () => {
+          if (tunnel) await stopTunnel(tunnel.id)
+        },
+      },
+    },
+  ],
+})
+```
+
+## Astro SSR + API Endpoints
+
+When using SSR mode (`output: 'server'`), Astro endpoints are reachable through the tunnel:
+
+```ts
+// src/pages/api/contact.ts
+import type { APIRoute } from 'astro'
+
+export const POST: APIRoute = async ({ request }) => {
+  const data = await request.json()
+  // Process contact form...
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+```
+
+```bash
+mekong 4321
+# POST https://your-tunnel.mekongtunnel.dev/api/contact
+```
+
+## Static Site Preview
+
+Astro can generate fully static sites. Tunnel your dev server for a live preview:
+
+```bash
+# Static mode (default)
+npm run dev
+mekong 4321
+# Share the URL — anyone can view your static site
+```
+
+Or build and preview the static output:
+
+```bash
+npm run build
+npm run preview   # Serves on localhost:4321
+mekong 4321
+```
+
+## React / Vue / Svelte Islands
+
+Astro supports UI framework islands. They work normally through the tunnel:
+
+```astro
+---
+// src/pages/index.astro
+import ReactCounter from '../components/ReactCounter.tsx'
+import VueWidget from '../components/VueWidget.vue'
+---
+
+<h1>Astro Islands</h1>
+<ReactCounter client:load />
+<VueWidget client:idle />
+```
+
+```bash
+mekong 4321
+# All islands hydrate correctly through the tunnel
+```
+
+## Environment Variables
+
+```env
+# .env
+PUBLIC_SITE_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+STRIPE_SECRET_KEY=sk_test_...
+```
+
+```ts
+// Access in .astro files
+const siteUrl = import.meta.env.PUBLIC_SITE_URL
+
+// Server-only env (SSR mode)
+const stripeKey = import.meta.env.STRIPE_SECRET_KEY
+```
+
+## Webhook Endpoint (SSR)
+
+```ts
+// src/pages/webhooks/stripe.ts
+import type { APIRoute } from 'astro'
+import Stripe from 'stripe'
+
+export const POST: APIRoute = async ({ request }) => {
+  const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY)
+  const body = await request.text()
+  const sig = request.headers.get('stripe-signature')!
+
+  const event = stripe.webhooks.constructEvent(
+    body, sig, import.meta.env.STRIPE_WEBHOOK_SECRET
+  )
+
+  // handle event...
+  return new Response('OK')
+}
+```
+
+## Adapters + Tunnel
+
+Astro SSR requires an adapter. The tunnel works with all of them locally:
+
+```bash
+npm install @astrojs/node   # Node.js adapter for local SSR
+```
+
+```ts
+// astro.config.mjs
+import node from '@astrojs/node'
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({ mode: 'standalone' }),
+  server: { port: 4321 },
+})
+```
+
+```bash
+npm run dev
+mekong 4321
+```
+
+## Tips
+
+- Astro's dev server port is `4321` by default (not `3000` or `5173`)
+- Content collections and MDX work normally through the tunnel
+- For static output (`output: 'static'`), no server-side code runs — the tunnel serves HTML/CSS/JS files as-is

@@ -3,5 +3,8 @@
     "title": "Home",
     "display": "hidden"
   },
-  "docs": "Documentation"
+  "docs": {
+    "title": "Documentation",
+    "display": "hidden"
+  }
 }

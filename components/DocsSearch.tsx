@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Search as SearchIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import type { SearchResult } from '@/pages/api/search'
+import { VERSIONS, LATEST_VERSION } from '@/lib/versions'
 
 const DEFAULT_LOCALE = 'en-US'
 const MAX_RESULTS = 12
@@ -20,13 +22,7 @@ type SearchData = Record<
   }
 >
 
-type SearchResult = {
-  excerpt?: string
-  id: string
-  route: string
-  title: string
-  pageTitle?: string
-}
+// SearchResult type imported from /pages/api/search
 
 type SearchMatch = {
   entry: SearchEntry
@@ -432,6 +428,13 @@ function searchIndexes(indexes: SearchEntry[], query: string): SearchResult[] {
 export default function DocsSearch({ className }: SearchProps) {
   const router = useRouter()
   const { asPath, basePath = '', defaultLocale = DEFAULT_LOCALE, locale = defaultLocale } = router
+
+  // Detect version from URL, e.g. /docs/v1.0.0/getting-started → "v1.0.0"
+  // Falls back to LATEST_VERSION when not on a versioned page (e.g. home page)
+  const versionInUrl = asPath.match(/^\/docs\/([^/?#]+)/)?.[1] ?? ''
+  const isKnownVersion = VERSIONS.some(v => v.id === versionInUrl)
+  const currentVersion = isKnownVersion ? versionInUrl : LATEST_VERSION
+  const isAllVersions = !isKnownVersion  // true when on non-versioned page (home, etc.)
   const [activeIndex, setActiveIndex] = useState(0)
   const [error, setError] = useState('')
   const [focused, setFocused] = useState(false)
@@ -501,9 +504,7 @@ export default function DocsSearch({ className }: SearchProps) {
       setOpen(false)
       setLoading(false)
       setError('')
-      startTransition(() => {
-        setResults([])
-      })
+      startTransition(() => setResults([]))
       return
     }
 
@@ -511,9 +512,7 @@ export default function DocsSearch({ className }: SearchProps) {
       setError('')
       setLoading(false)
       setOpen(focused)
-      startTransition(() => {
-        setResults([])
-      })
+      startTransition(() => setResults([]))
       return
     }
 
@@ -522,38 +521,35 @@ export default function DocsSearch({ className }: SearchProps) {
     setError('')
     setOpen(true)
 
-    loadIndexes(basePath, locale)
-      .then(indexes => {
-        if (cancelled) {
-          return
-        }
+    const params = new URLSearchParams({ q: deferredQuery })
+    if (isAllVersions) {
+      // Home page / non-versioned: search all, results show version labels
+      params.set('all', '1')
+    } else {
+      // On a versioned page: search only that version
+      params.set('v', currentVersion)
+    }
 
-        const nextResults = searchIndexes(indexes, deferredQuery)
-
-        startTransition(() => {
-          setResults(nextResults)
-        })
+    fetch(`/api/search?${params}`)
+      .then(r => {
+        if (!r.ok) throw new Error('Search failed')
+        return r.json() as Promise<SearchResult[]>
+      })
+      .then(data => {
+        if (cancelled) return
+        startTransition(() => setResults(data))
       })
       .catch(() => {
-        if (cancelled) {
-          return
-        }
-
-        setError('Failed to load search index.')
-        startTransition(() => {
-          setResults([])
-        })
+        if (cancelled) return
+        setError('Search failed. Try again.')
+        startTransition(() => setResults([]))
       })
       .finally(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
+        if (!cancelled) setLoading(false)
       })
 
-    return () => {
-      cancelled = true
-    }
-  }, [basePath, deferredQuery, focused, locale])
+    return () => { cancelled = true }
+  }, [deferredQuery, focused, currentVersion, isAllVersions])
 
   const handleKeyDown = (event: ReactKeyboardEvent<HTMLInputElement>) => {
     if (!results.length) {
@@ -618,6 +614,13 @@ export default function DocsSearch({ className }: SearchProps) {
 
         {open ? (
           <div className="docs-search-panel absolute left-1/2 top-full z-30 mt-3 w-full -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
+            {/* Version scope indicator */}
+            <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-xs text-muted-foreground">
+              <span>{isAllVersions ? 'Searching all versions' : `Searching in`}</span>
+              {!isAllVersions && (
+                <span className="font-semibold text-foreground">{currentVersion}</span>
+              )}
+            </div>
             {loading ? (
               <div className="p-8 text-center text-sm text-muted-foreground">Loading…</div>
             ) : error ? (
@@ -640,11 +643,18 @@ export default function DocsSearch({ className }: SearchProps) {
                         index === activeIndex ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/60'
                       )}
                     >
-                      {result.pageTitle && result.pageTitle !== result.title ? (
-                        <div className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
-                          {result.pageTitle}
-                        </div>
-                      ) : null}
+                      <div className="flex items-center gap-2">
+                        {result.version && (
+                          <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                            {result.version}
+                          </span>
+                        )}
+                        {result.pageTitle && result.pageTitle !== result.title ? (
+                          <span className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                            {result.pageTitle}
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="mt-1 text-sm font-semibold text-foreground">{result.title}</div>
                       {result.excerpt ? (
                         <div className="mt-1 line-clamp-2 text-sm text-muted-foreground">{result.excerpt}</div>

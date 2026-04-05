@@ -75,6 +75,23 @@ body {
   max-width: 100vw;
 }
 
+
+/* ─── Full-width layout ──────────────────────────────────────── */
+/* Nextra wraps everything in a 90rem max-width centered container.
+   Remove the constraint so layout stretches edge-to-edge. */
+.nx-max-w-\[90rem\] {
+  max-width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* The flex wrapper directly containing the sidebar also has px-4.
+   Zero it out so the sidebar panel is flush to the screen edge. */
+.nx-flex:has(> .nextra-sidebar-container) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
 /* ─── Navbar ─────────────────────────────────────────────────── */
 .nextra-nav-container {
   @apply w-full;
@@ -102,19 +119,25 @@ body {
   width: 0;
   flex: 1 1 0%;
   overflow-x: hidden;
-  padding-left: 1rem !important;
-  padding-right: 1rem !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
-@media (min-width: 640px) {
-  .nextra-content {
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
-  }
+/* Nextra centers main with max-w-6xl + justify-center.
+   Override both so content fills the full column width. */
+.nextra-content {
+  justify-content: flex-start !important;
 }
 
-@media (min-width: 1024px) {
-  .nextra-content {
+.nextra-content main {
+  max-width: 100% !important;
+  /* keep comfortable reading gutters */
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
+}
+
+@media (min-width: 768px) {
+  .nextra-content main {
     padding-left: 2rem !important;
     padding-right: 2rem !important;
   }

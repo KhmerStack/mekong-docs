@@ -1,0 +1,190 @@
+---
+title: Nuxt
+description: Expose your Nuxt dev server with a public tunnel URL
+---
+
+Nuxt is the Vue full-stack framework — SSR, SSG, and API routes in one. Tunnel your Nuxt dev server to test webhooks, share previews, or demo to clients.
+
+## Quick Start
+
+```bash
+npm install -g mekong-cli
+mekong auth YOUR_TOKEN
+```
+
+```bash
+# Terminal 1
+npm run dev        # Nuxt starts on http://localhost:3000
+
+# Terminal 2
+mekong 3000
+# → https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+Or together:
+
+```bash
+npx concurrently "nuxi dev" "mekong 3000"
+```
+
+## package.json Scripts
+
+```json
+{
+  "scripts": {
+    "dev": "nuxi dev",
+    "tunnel": "mekong 3000",
+    "dev:share": "concurrently \"nuxi dev\" \"mekong 3000\""
+  }
+}
+```
+
+## Custom Port
+
+```bash
+nuxi dev --port 3001
+mekong 3001
+```
+
+Or in `nuxt.config.ts`:
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  devServer: {
+    port: 3001,
+  },
+})
+```
+
+## Nuxt Module (Auto-Tunnel)
+
+Create a local Nuxt module to auto-start the tunnel when the dev server starts:
+
+```ts
+// modules/mekong-tunnel.ts
+import { defineNuxtModule } from '@nuxt/kit'
+import { createTunnel } from 'mekong-cli'
+
+export default defineNuxtModule({
+  meta: { name: 'mekong-tunnel' },
+  async setup(_options, nuxt) {
+    if (!nuxt.options.dev) return
+    nuxt.hook('listen', async (server) => {
+      const port = nuxt.options.devServer.port ?? 3000
+      const tunnel = await createTunnel({ port })
+      console.log(`\n  ➜  Tunnel:  ${tunnel.url}\n`)
+    })
+  },
+})
+```
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['~/modules/mekong-tunnel'],
+})
+```
+
+## Environment Variables
+
+```env
+# .env
+NUXT_PUBLIC_APP_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+NUXT_PUBLIC_API_BASE=https://happy-tiger-a1b2c3d4.mekongtunnel.dev/api
+```
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  runtimeConfig: {
+    public: {
+      appUrl: process.env.NUXT_PUBLIC_APP_URL,
+      apiBase: process.env.NUXT_PUBLIC_API_BASE,
+    },
+  },
+})
+```
+
+Access in components:
+
+```vue
+<script setup lang="ts">
+const config = useRuntimeConfig()
+const apiBase = config.public.apiBase
+</script>
+```
+
+## API Routes / Server Handlers
+
+Nuxt API routes (`server/api/`) are fully reachable through the tunnel:
+
+```ts
+// server/api/webhook.post.ts
+export default defineEventHandler(async (event) => {
+  const body = await readBody(event)
+  console.log('Webhook received:', body)
+  return { status: 'ok' }
+})
+```
+
+```bash
+mekong 3000
+# POST https://happy-tiger-a1b2c3d4.mekongtunnel.dev/api/webhook
+```
+
+## OAuth with nuxt-auth or sidebase/nuxt-auth
+
+```env
+AUTH_ORIGIN=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+AUTH_SECRET=your-secret
+GITHUB_CLIENT_ID=...
+GITHUB_CLIENT_SECRET=...
+```
+
+Add the callback URL in your OAuth app:
+
+```
+https://happy-tiger-a1b2c3d4.mekongtunnel.dev/api/auth/callback/github
+```
+
+## Nitro / h3 Webhooks
+
+```ts
+// server/api/stripe.post.ts
+import Stripe from 'stripe'
+
+export default defineEventHandler(async (event) => {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+  const body = await readRawBody(event)
+  const sig = getHeader(event, 'stripe-signature')!
+
+  const stripeEvent = stripe.webhooks.constructEvent(
+    body!, sig, process.env.STRIPE_WEBHOOK_SECRET!
+  )
+
+  if (stripeEvent.type === 'checkout.session.completed') {
+    // handle
+  }
+
+  return { received: true }
+})
+```
+
+## CORS
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  routeRules: {
+    '/api/**': {
+      cors: true,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    },
+  },
+})
+```
+
+## Nuxt 3 vs Nuxt 2
+
+Both versions work with the tunnel. Nuxt 3 uses `nuxi dev` (port 3000), Nuxt 2 uses `nuxt dev` (port 3000). The tunnel command is identical: `mekong 3000`.

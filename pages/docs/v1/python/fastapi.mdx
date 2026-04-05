@@ -1,0 +1,158 @@
+---
+title: FastAPI
+description: Expose your FastAPI ASGI app with a public tunnel URL
+---
+
+Use `mekong-fastapi` to start your FastAPI application and automatically expose it with a public tunnel URL — just like you'd use `uvicorn`, but with a tunnel built in.
+
+## Quick Start
+
+```bash
+pip install mekong-tunnel fastapi uvicorn
+```
+
+```bash
+# Same as: uvicorn main:app --reload
+mekong-fastapi main:app --reload
+```
+
+Your app starts on `localhost:8000` and a public URL like `https://happy-tiger-a1b2c3d4.mekongtunnel.dev` is printed immediately.
+
+## Open in Browser
+
+```bash
+mekong-fastapi main:app --reload --domain
+```
+
+`--domain` opens your tunnel URL in the browser automatically.
+
+```bash
+mekong-fastapi main:app --reload --local
+```
+
+`--local` opens `http://localhost:8000` instead.
+
+## Custom Port
+
+```bash
+mekong-fastapi main:app --port 8080 --reload
+```
+
+## Full Example App
+
+```python
+# main.py
+from fastapi import FastAPI
+
+app = FastAPI(title="My API", version="1.0.0")
+
+@app.get("/")
+def root():
+    return {"message": "Hello from MekongTunnel!"}
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+```
+
+```bash
+mekong-fastapi main:app --reload --domain
+# → https://happy-tiger-a1b2c3d4.mekongtunnel.dev/docs  (Swagger UI via tunnel!)
+```
+
+## All Arguments
+
+`mekong-fastapi` passes all arguments directly to `uvicorn`, so every uvicorn flag works:
+
+```bash
+mekong-fastapi main:app \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --reload \
+  --workers 4 \
+  --log-level debug
+```
+
+## Programmatic API
+
+```python
+from mekong_tunnel import start_tunnel, stop_tunnel
+import uvicorn
+import threading
+
+tunnel = start_tunnel(port=8000)
+print("Public URL:", tunnel.url)
+print("Swagger UI:", tunnel.url + "/docs")
+
+uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+
+stop_tunnel(tunnel.id)
+```
+
+## FastAPI + Background Tasks Example
+
+```python
+from fastapi import FastAPI, BackgroundTasks
+from mekong_tunnel import get_tunnel_url
+
+app = FastAPI()
+
+@app.get("/tunnel-url")
+def get_url():
+    """Returns the public tunnel URL for this instance."""
+    return {"url": get_tunnel_url()}
+```
+
+## Webhook Testing with FastAPI
+
+```python
+# webhook.py
+from fastapi import FastAPI, Request
+import hmac, hashlib
+
+app = FastAPI()
+
+@app.post("/github/webhook")
+async def github_webhook(request: Request):
+    body = await request.body()
+    sig = request.headers.get("X-Hub-Signature-256", "")
+    # verify signature...
+    payload = await request.json()
+    print("Push to:", payload["repository"]["full_name"])
+    return {"ok": True}
+```
+
+```bash
+mekong-fastapi webhook:app --reload --domain
+# → Copy the URL to GitHub → Settings → Webhooks
+```
+
+## Environment Variables
+
+```bash
+MEKONG_TOKEN=your_token mekong-fastapi main:app --reload
+```
+
+Or create a `.env` file:
+
+```env
+MEKONG_TOKEN=your_token
+MEKONG_SERVER=mekongtunnel.dev
+```
+
+## Notes
+
+- FastAPI's interactive docs (`/docs` and `/redoc`) work perfectly via the tunnel URL
+- WebSocket connections are fully supported through the tunnel
+- CORS: if your frontend calls the tunnel URL, remember to add it to `allow_origins`
+
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or specify your tunnel URL
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```

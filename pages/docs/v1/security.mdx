@@ -1,0 +1,92 @@
+---
+title: Security
+description: Vulnerability disclosure policy and security practices for MekongTunnel
+---
+
+## Reporting a Vulnerability
+
+If you discover a security vulnerability in MekongTunnel, please report it responsibly. **Do not open a public GitHub issue for security vulnerabilities.**
+
+### How to Report
+
+Email **muyleanging@gmail.com** with:
+
+- Subject line: `[SECURITY] Brief description`
+- A description of the vulnerability and its potential impact
+- Steps to reproduce the issue
+- Any relevant proof-of-concept code or screenshots
+
+We will acknowledge your report within **48 hours** and provide a resolution timeline within **7 days**.
+
+### What to Expect
+
+1. **Acknowledgement** — We confirm receipt within 48 hours
+2. **Assessment** — We evaluate severity and scope (CVSS scoring)
+3. **Fix** — We develop and test a patch
+4. **Disclosure** — We coordinate public disclosure after the fix is deployed
+5. **Credit** — We credit responsible reporters in our release notes (unless you prefer anonymity)
+
+We ask that you:
+- Give us reasonable time to fix the issue before public disclosure
+- Not access or modify user data beyond what is needed to demonstrate the vulnerability
+- Not perform denial-of-service attacks or disrupt service availability
+
+## Security Architecture
+
+### Data in Transit
+
+All traffic between clients and the MekongTunnel server uses:
+
+- **TLS 1.2+** for all HTTPS connections (enforced via Cloudflare)
+- **SSH** for tunnel control channels (ED25519 host key, AES-256-CTR encryption)
+- HTTP is redirected to HTTPS automatically on port 80
+
+### Authentication
+
+- Passwords are hashed with **bcrypt** (cost factor 12)
+- API tokens use **cryptographically random 128-bit entropy**
+- Tokens are shown once at creation; only a hashed prefix is stored
+- OAuth 2.0 flows for GitHub and Google use state parameters to prevent CSRF
+- Sessions use signed, httpOnly, Secure cookies with SameSite=Strict
+
+### API Token Security
+
+```bash
+# Tokens are stored in ~/.mekong/config.yml on your machine
+# Do NOT commit this file to version control
+echo "~/.mekong/config.yml" >> .gitignore
+```
+
+If a token is compromised:
+1. Go to **Dashboard → API Tokens**
+2. Click the trash icon next to the compromised token
+3. Create a new token and run `mekong auth NEW_TOKEN`
+
+### Network Isolation
+
+- The admin dashboard runs on **localhost:9090 only** — not exposed to the internet
+- Each tunnel is isolated; tunnels cannot access each other's traffic
+- Rate limiting (10 req/s, burst 20) is enforced per tunnel
+- Automatic IP blocking after repeated abuse violations
+
+### Subdomain Randomness
+
+Tunnel subdomains use `adjective-noun-8hexchars` format with 8 random hex characters, providing approximately **4.3 billion** unique combinations per word pair. This makes subdomain enumeration attacks impractical.
+
+## Known Limitations
+
+As an open-source project maintained by a solo developer, MekongTunnel has some inherent constraints:
+
+- **No WAF** — We do not inspect tunnel payload content for malicious requests
+- **No E2E encryption** — Traffic is decrypted at the server to be proxied; TLS terminates at Cloudflare/our server
+- **Best-effort availability** — We do not have a formal SLA for the public free tier
+
+## Responsible Disclosure Hall of Fame
+
+*No vulnerabilities have been reported yet. Be the first!*
+
+## Contact
+
+Security reports: **muyleanging@gmail.com**
+
+For general security questions, open a [GitHub Discussion](https://github.com/MuyleangIng/MekongTunnel/discussions) with the `security` tag.

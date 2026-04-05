@@ -1,0 +1,129 @@
+---
+title: FAQ
+description: Frequently asked questions about MekongTunnel.
+---
+
+# FAQ
+
+## General
+
+### Is MekongTunnel free?
+
+Yes. The public hosted instance at `mekongtunnel.dev` is free to use. The server code is MIT licensed — you can also self-host for free.
+
+### Do I need to create an account?
+
+No. There is no account system. Connect and get a URL immediately.
+
+### How is this different from ngrok?
+
+| | MekongTunnel | ngrok |
+|--|--|--|
+| Open source | ✅ MIT | ❌ Proprietary |
+| Account required | ❌ None | ✅ Required |
+| Self-hostable | ✅ Yes | ❌ No |
+| Custom domains | ✅ (self-hosted) | 💲 Paid plan |
+| Protocol | Standard SSH | Proprietary |
+
+### What protocols are supported?
+
+HTTP, HTTPS, and WebSocket. Raw TCP tunneling is not currently supported.
+
+---
+
+## Troubleshooting
+
+### "No output / connection hangs"
+
+The `-t` flag is required when using raw SSH. Without it, no TTY is allocated and the server cannot display the URL:
+
+```bash
+# Wrong — hangs
+ssh -R 80:localhost:8080 mekongtunnel.dev
+
+# Correct
+ssh -t -R 80:localhost:8080 mekongtunnel.dev
+```
+
+The `mekong` CLI handles this automatically.
+
+### "Host key verification failed"
+
+Accept the host key on first connection:
+
+```
+Are you sure you want to continue connecting (yes/no)? yes
+```
+
+Or add `-o StrictHostKeyChecking=no` (not recommended for production).
+
+### "Connection refused on port 22"
+
+```bash
+# Check that the service is running
+docker compose ps
+
+# Check ports are open
+sudo ss -tlnp | grep -E ':(22|80|443)'
+sudo ufw status
+```
+
+### "Certificate issues"
+
+```bash
+sudo certbot renew
+sudo cp /etc/letsencrypt/live/yourdomain.com/*.pem data/certs/
+docker compose restart
+```
+
+### "Rate limit exceeded"
+
+The public hosted instance allows up to 1,000 tunnels per IP with no connection rate limit. If you still hit a limit, [self-host](/docs/self-hosting) and tune `MAX_TUNNELS_PER_IP`, `MAX_TOTAL_TUNNELS`, and `MAX_CONNECTIONS_PER_MINUTE` in your `.env`.
+
+### "IP is temporarily blocked"
+
+Auto-blocking is disabled by default since v1.4.8. If you see this message you are connecting to an older server or a self-hosted instance with auto-blocking enabled. Wait for the block to expire — the error message shows the remaining time. The `mekong` CLI will automatically stop retrying when blocked.
+
+---
+
+## Self-Hosting
+
+### Do I need a wildcard TLS certificate?
+
+Yes. Without a wildcard cert (`*.yourdomain.com`), the browser will show a certificate error for tunnel subdomains. Let's Encrypt issues wildcard certs for free via DNS challenge.
+
+### Can I run multiple instances?
+
+Yes. Use different ports for each instance. See the [Configuration](/docs/configuration) docs.
+
+### How do I update?
+
+```bash
+git pull
+make build-small
+docker compose down && docker compose up -d
+```
+
+---
+
+## Technical
+
+### What is the subdomain format?
+
+Subdomains are generated as `adjective-noun-hex8` (e.g. `happy-tiger-a1b2c3d4`). They are memorable, unique, and URL-safe.
+
+### Can I request a specific subdomain?
+
+No. As of v1.4.3, the `--subdomain` flag has been removed. Tunnels always receive a randomly generated URL (e.g. `happy-tiger-a1b2c3d4`).
+
+### Is WebSocket compression supported?
+
+Not currently. WebSocket frames are proxied as-is without compression negotiation.
+
+### Where is the request log stored?
+
+In foreground mode, logs are streamed to your terminal in real time and not persisted to disk.
+
+In daemon mode (`mekong -d <port>`), all output — including the tunnel URL and request logs — is written to `~/.mekong/mekong.log`.
+
+You can read it with `mekong logs`, follow it live with `mekong logs -f`, or filter it by local port with `mekong logs 3000`. Stopping `mekong stop 3000` clears old log lines for that port, and `mekong stop --all` clears the daemon log file.

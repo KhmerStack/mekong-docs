@@ -1,0 +1,207 @@
+---
+title: Next.js
+description: Expose your Next.js dev server with a public tunnel URL
+---
+
+Run `next dev` and expose it publicly in one step — perfect for testing OAuth callbacks, Stripe webhooks, sharing work-in-progress with clients, or testing on a real device.
+
+## Quick Start
+
+```bash
+npm install -g mekong-cli
+mekong auth YOUR_TOKEN
+```
+
+```bash
+# Terminal 1 — start Next.js
+npx next dev
+
+# Terminal 2 — start tunnel
+mekong 3000
+# → https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+Or run both together:
+
+```bash
+npx concurrently "next dev" "mekong 3000"
+```
+
+## package.json Scripts
+
+```json
+{
+  "scripts": {
+    "dev": "next dev",
+    "tunnel": "mekong 3000",
+    "dev:share": "concurrently \"next dev\" \"mekong 3000\""
+  }
+}
+```
+
+```bash
+npm run dev:share
+```
+
+## Custom Port
+
+```bash
+next dev --port 3001
+mekong 3001
+```
+
+Or in `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "tunnel": "mekong 3001"
+  }
+}
+```
+
+## Environment Variables
+
+Next.js reads `.env.local`. Store your tunnel-related config there:
+
+```env
+# .env.local
+NEXTAUTH_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+NEXT_PUBLIC_APP_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+> **Note:** Tunnel subdomains are random on each restart. For persistent URLs, upgrade to Pro or higher.
+
+## OAuth / NextAuth.js
+
+When using NextAuth.js, the redirect URI must match your tunnel URL.
+
+```ts
+// app/api/auth/[...nextauth]/route.ts
+import NextAuth from 'next-auth'
+import GitHub from 'next-auth/providers/github'
+
+export const { handlers } = NextAuth({
+  providers: [
+    GitHub({
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!,
+    }),
+  ],
+})
+```
+
+Add your tunnel URL to your OAuth app's callback list:
+
+```
+https://happy-tiger-a1b2c3d4.mekongtunnel.dev/api/auth/callback/github
+```
+
+And set:
+
+```env
+NEXTAUTH_URL=https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+## Stripe Webhooks
+
+```ts
+// app/api/webhooks/stripe/route.ts
+import Stripe from 'stripe'
+import { headers } from 'next/headers'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+
+export async function POST(req: Request) {
+  const body = await req.text()
+  const sig = (await headers()).get('stripe-signature')!
+
+  const event = stripe.webhooks.constructEvent(
+    body, sig, process.env.STRIPE_WEBHOOK_SECRET!
+  )
+
+  switch (event.type) {
+    case 'checkout.session.completed':
+      // handle payment
+      break
+  }
+
+  return Response.json({ received: true })
+}
+```
+
+```bash
+# Start tunnel, then add this URL to Stripe Dashboard → Webhooks:
+# https://happy-tiger-a1b2c3d4.mekongtunnel.dev/api/webhooks/stripe
+mekong 3000
+```
+
+## App Router vs Pages Router
+
+Works identically for both. API routes are served at:
+
+- **App Router:** `app/api/route.ts` → `/api/...`
+- **Pages Router:** `pages/api/handler.ts` → `/api/...`
+
+Both are reachable through the tunnel.
+
+## Programmatic API
+
+```ts
+// scripts/tunnel.mjs
+import { createTunnel } from 'mekong-cli'
+
+const tunnel = await createTunnel({ port: 3000 })
+console.log('Tunnel URL:', tunnel.url)
+// Update .env.local with the new URL automatically
+```
+
+## next.config.ts — Auto-Tunnel Plugin
+
+```ts
+// next.config.ts
+import type { NextConfig } from 'next'
+
+const config: NextConfig = {
+  // ...your config
+}
+
+// Auto-start tunnel in development
+if (process.env.TUNNEL === '1') {
+  import('mekong-cli').then(({ createTunnel }) =>
+    createTunnel({ port: 3000 }).then(t =>
+      console.log('\n  ➜  Tunnel:', t.url, '\n')
+    )
+  )
+}
+
+export default config
+```
+
+```bash
+TUNNEL=1 next dev
+```
+
+## CORS for API Routes
+
+If a separate frontend calls your Next.js API via tunnel:
+
+```ts
+// middleware.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+export function middleware(request: NextRequest) {
+  const response = NextResponse.next()
+  response.headers.set('Access-Control-Allow-Origin', '*')
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  return response
+}
+```
+
+## Tips
+
+- Next.js HMR (hot reload) works through the tunnel for the main page, but the WebSocket HMR connection will use `localhost` internally — this is normal
+- For full HMR via tunnel, set `NEXT_PUBLIC_WS_URL` if your app uses custom WebSockets
+- Turbopack (`next dev --turbo`) works normally with the tunnel

@@ -1,0 +1,283 @@
+---
+title: Express / Fastify
+description: Expose Express, Fastify, Koa, Hono, and other Node.js servers
+---
+
+Expose any Node.js HTTP server — Express, Fastify, Koa, Hono, NestJS, Hapi, and more — using `mekong-cli`. If it listens on a port, it works with MekongTunnel.
+
+## Quick Start
+
+```bash
+npm install -g mekong-cli
+mekong auth YOUR_TOKEN
+```
+
+```bash
+# Start your server (e.g. Express on 3000)
+node server.js
+
+# In another terminal
+mekong 3000
+# → https://happy-tiger-a1b2c3d4.mekongtunnel.dev
+```
+
+---
+
+## Express
+
+```bash
+npm install express
+```
+
+```ts
+// server.ts
+import express from 'express'
+
+const app = express()
+app.use(express.json())
+
+app.get('/', (req, res) => {
+  res.json({ message: 'Hello from Express via MekongTunnel!' })
+})
+
+app.post('/webhook', (req, res) => {
+  console.log('Received:', req.body)
+  res.json({ status: 'ok' })
+})
+
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000')
+})
+```
+
+```bash
+npx ts-node server.ts
+mekong 3000
+```
+
+### Express + Auto-Tunnel
+
+```ts
+// server.ts
+import express from 'express'
+import { createTunnel } from 'mekong-cli'
+
+const app = express()
+app.use(express.json())
+
+app.get('/', (req, res) => res.json({ ok: true }))
+
+app.listen(3000, async () => {
+  const tunnel = await createTunnel({ port: 3000 })
+  console.log('Local:  http://localhost:3000')
+  console.log('Tunnel:', tunnel.url)
+})
+```
+
+### package.json Script
+
+```json
+{
+  "scripts": {
+    "dev": "nodemon server.ts",
+    "tunnel": "mekong 3000",
+    "dev:share": "concurrently \"nodemon server.ts\" \"mekong 3000\""
+  }
+}
+```
+
+---
+
+## Fastify
+
+```bash
+npm install fastify
+```
+
+```ts
+// server.ts
+import Fastify from 'fastify'
+
+const fastify = Fastify({ logger: true })
+
+fastify.get('/', async () => {
+  return { message: 'Hello from Fastify via MekongTunnel!' }
+})
+
+fastify.post('/webhook', async (request) => {
+  console.log('Webhook:', request.body)
+  return { status: 'ok' }
+})
+
+fastify.listen({ port: 3000, host: '0.0.0.0' }, async (err) => {
+  if (err) process.exit(1)
+  const { createTunnel } = await import('mekong-cli')
+  const tunnel = await createTunnel({ port: 3000 })
+  console.log('Tunnel:', tunnel.url)
+})
+```
+
+### Fastify Plugins
+
+```ts
+import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
+
+await fastify.register(cors, { origin: '*' })
+await fastify.register(helmet)
+```
+
+---
+
+## Koa
+
+```bash
+npm install koa @koa/router koa-bodyparser
+```
+
+```ts
+import Koa from 'koa'
+import Router from '@koa/router'
+import bodyParser from 'koa-bodyparser'
+import { createTunnel } from 'mekong-cli'
+
+const app = new Koa()
+const router = new Router()
+
+app.use(bodyParser())
+
+router.get('/', (ctx) => {
+  ctx.body = { message: 'Hello from Koa!' }
+})
+
+router.post('/webhook', (ctx) => {
+  console.log('Received:', ctx.request.body)
+  ctx.body = { ok: true }
+})
+
+app.use(router.routes())
+
+app.listen(3000, async () => {
+  const tunnel = await createTunnel({ port: 3000 })
+  console.log('Tunnel:', tunnel.url)
+})
+```
+
+---
+
+## Hono
+
+[Hono](https://hono.dev/) is a fast, ultralight web framework for Node.js, Cloudflare Workers, Deno, and Bun.
+
+```bash
+npm install hono @hono/node-server
+```
+
+```ts
+import { Hono } from 'hono'
+import { serve } from '@hono/node-server'
+import { createTunnel } from 'mekong-cli'
+
+const app = new Hono()
+
+app.get('/', (c) => c.json({ message: 'Hello from Hono!' }))
+
+app.post('/webhook', async (c) => {
+  const body = await c.req.json()
+  console.log('Webhook:', body)
+  return c.json({ ok: true })
+})
+
+serve({ fetch: app.fetch, port: 3000 }, async () => {
+  const tunnel = await createTunnel({ port: 3000 })
+  console.log('Tunnel:', tunnel.url)
+})
+```
+
+---
+
+## NestJS
+
+```bash
+npm install -g @nestjs/cli
+nest new my-app
+```
+
+```ts
+// src/main.ts
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module'
+import { createTunnel } from 'mekong-cli'
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule)
+  app.enableCors()
+
+  await app.listen(3000)
+
+  const tunnel = await createTunnel({ port: 3000 })
+  console.log('Local:  http://localhost:3000')
+  console.log('Tunnel:', tunnel.url)
+  console.log('Swagger:', tunnel.url + '/api')
+}
+bootstrap()
+```
+
+NestJS Swagger UI works through the tunnel at `/api`.
+
+---
+
+## Stripe Webhooks (Generic)
+
+For any Express-compatible server:
+
+```ts
+import express from 'express'
+import Stripe from 'stripe'
+
+const app = express()
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+
+// IMPORTANT: raw body required for Stripe signature verification
+app.post('/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = req.headers['stripe-signature']!
+
+  const event = stripe.webhooks.constructEvent(
+    req.body, sig, process.env.STRIPE_WEBHOOK_SECRET!
+  )
+
+  switch (event.type) {
+    case 'payment_intent.succeeded':
+      console.log('Payment succeeded!')
+      break
+    case 'customer.subscription.created':
+      console.log('New subscription!')
+      break
+  }
+
+  res.json({ received: true })
+})
+
+app.use(express.json()) // Apply after raw middleware
+
+app.listen(3000)
+```
+
+```bash
+mekong 3000
+# Register: https://your-tunnel.mekongtunnel.dev/webhook → Stripe Dashboard
+```
+
+---
+
+## Framework Comparison
+
+| Framework | Style | Performance | Best For |
+|-----------|-------|-------------|---------|
+| Express   | Middleware | Good | APIs, webhooks, general use |
+| Fastify   | Plugin | Excellent | High-throughput APIs |
+| Koa       | Middleware (async) | Good | Lightweight modern APIs |
+| Hono      | Handler | Excellent | Multi-runtime, edge |
+| NestJS    | Decorator/Module | Good | Enterprise, large apps |
+
+All work identically with `mekong PORT`.
