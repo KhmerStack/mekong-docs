@@ -14,6 +14,7 @@
   "cli-reference": "CLI Reference",
   "npm-cli": "NPM CLI",
   "vscode-extension": "VS Code Extension",
+  "bot": "Bot",
   "-- Node.js": {
     "type": "separator",
     "title": "Node.js Frameworks"

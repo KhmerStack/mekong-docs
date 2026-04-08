@@ -1,0 +1,50 @@
+---
+title: Bot
+description: Mekong bot docs. Telegram is available now, and Discord bot support is coming soon.
+---
+
+import { Callout } from 'nextra/components'
+import { FaTelegramPlane, FaDiscord } from 'react-icons/fa'
+
+# Bot
+
+Simple bot docs for Mekong.
+
+<Callout type="info">
+Telegram bot is available now. Discord bot support is coming soon.
+</Callout>
+
+<div className="not-prose my-8 grid gap-4 sm:grid-cols-2">
+  <a
+    href="./telegram-bot"
+    className="group rounded-2xl border border-sky-200 bg-sky-50 p-5 transition-colors hover:border-sky-300 hover:bg-sky-100 dark:border-sky-900 dark:bg-sky-950/40 dark:hover:border-sky-800 dark:hover:bg-sky-950/70"
+  >
+    <div className="mb-3 flex items-center gap-3">
+      <FaTelegramPlane className="h-7 w-7 text-sky-500" />
+      <h2 className="m-0 text-lg font-semibold text-slate-900 dark:text-slate-100">Telegram Bot</h2>
+    </div>
+    <p className="m-0 text-sm text-slate-700 dark:text-slate-300">
+      Available now. Link your Mekong account and check tunnels, logs, subdomains, and domains from Telegram.
+    </p>
+  </a>
+
+  <a
+    href="./discord-bot"
+    className="group rounded-2xl border border-indigo-200 bg-indigo-50 p-5 transition-colors hover:border-indigo-300 hover:bg-indigo-100 dark:border-indigo-900 dark:bg-indigo-950/40 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/70"
+  >
+    <div className="mb-3 flex items-center gap-3">
+      <FaDiscord className="h-7 w-7 text-indigo-500" />
+      <h2 className="m-0 text-lg font-semibold text-slate-900 dark:text-slate-100">Discord Bot</h2>
+    </div>
+    <p className="m-0 text-sm text-slate-700 dark:text-slate-300">
+      Coming soon. This page will be updated when the Discord bot is ready.
+    </p>
+  </a>
+</div>
+
+## Quick status
+
+| Bot | Status |
+|-----|--------|
+| Telegram Bot | Available now |
+| Discord Bot | Coming soon |

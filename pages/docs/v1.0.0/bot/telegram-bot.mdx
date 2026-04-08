@@ -1,0 +1,174 @@
+---
+title: Telegram Bot
+description: Use the Mekong Telegram bot to check your account, active tunnels, recent logs, reserved subdomains, and custom domains.
+---
+
+import { Callout } from 'nextra/components'
+import { FaTelegramPlane } from 'react-icons/fa'
+
+# Telegram Bot
+
+<div className="not-prose my-6 rounded-2xl border border-sky-200 bg-sky-50 p-5 dark:border-sky-900 dark:bg-sky-950/40">
+  <div className="flex items-center gap-3">
+    <FaTelegramPlane className="h-7 w-7 text-sky-500" />
+    <div>
+      <p className="m-0 text-lg font-semibold text-slate-900 dark:text-slate-100">Mekong Telegram Bot</p>
+      <p className="m-0 text-sm text-slate-700 dark:text-slate-300">Read-only account and tunnel status from Telegram.</p>
+    </div>
+  </div>
+</div>
+
+<Callout type="success">
+Telegram bot is available now.
+</Callout>
+
+Use the Mekong Tunnel Bot in Telegram to check your Mekong account, active tunnels, recent logs, reserved subdomains, and custom domains.
+
+This bot is read-only. It does not start tunnels, stop tunnels, or change your account from Telegram.
+
+## Add the bot
+
+1. Open Telegram.
+2. Search for `@MekongTunnelBot` or open your deployed Mekong bot username.
+3. Start a private chat with the bot.
+4. Send `/start` or `/link`.
+
+Note: the bot currently works in private chats only.
+
+## Link your Mekong account
+
+1. Send `/link`.
+2. The bot replies with a secure approval link.
+3. Open the link and sign in to your Mekong account if needed.
+4. Approve the Telegram link request.
+5. Return to Telegram and use `/help` to see the available commands.
+
+Notes:
+
+- The approval link expires in 10 minutes.
+- If your Telegram account is already linked, use `/unlink` first before linking again.
+- If your Mekong account is suspended, the bot will not return account data until the account is restored.
+
+## Commands
+
+### `/start`
+
+Starts the conversation with the bot.
+
+- If your account is not linked yet, the bot asks you to use `/link`.
+- If your account is already linked, the bot shows a welcome-back message.
+
+### `/help`
+
+Shows the command list.
+
+### `/link`
+
+Starts the browser approval flow to connect Telegram to your Mekong account.
+
+### `/me`
+
+Shows your Mekong account summary, including:
+
+- Email
+- Email verification status
+- Plan
+- Account type
+
+### `/services`
+
+Lists your active tunnels.
+
+Each result includes:
+
+- Subdomain
+- Local port
+- Request count
+
+### `/logs <subdomain-or-id>`
+
+Shows the most recent tunnel logs for one active tunnel.
+
+Examples:
+
+```text
+/logs myapp
+/logs tun_123
+```
+
+Notes:
+
+- You can use either the tunnel subdomain or the tunnel ID.
+- Logs are only available for active tunnels.
+- The bot returns up to the last 20 log lines.
+- Known secrets such as bearer tokens, cookies, API keys, and passwords are redacted before logs are sent to Telegram.
+
+### `/subdomains`
+
+Lists your reserved subdomains.
+
+### `/domains`
+
+Lists your custom domains and their current status.
+
+Common statuses include:
+
+- `verified`
+- `active`
+- `pending`
+- `failed`
+
+### `/domain <hostname>`
+
+Shows details for one custom domain.
+
+Example:
+
+```text
+/domain app.example.com
+```
+
+The bot can show:
+
+- Current status
+- Target subdomain
+- Verification time
+- Created time
+
+### `/unlink`
+
+Disconnects your Telegram chat from your Mekong account.
+
+After unlinking, account commands such as `/me`, `/services`, `/logs`, `/subdomains`, and `/domains` will stop working until you link again.
+
+## Quick command list
+
+```text
+/link - Link Telegram to your Mekong account
+/me - Show your account info
+/services - List active tunnels
+/logs <id> - Show recent logs
+/subdomains - List reserved subdomains
+/domains - List custom domains
+/domain <host> - Check one domain
+/unlink - Unlink from your account
+/help - Show help
+```
+
+## Troubleshooting
+
+### The bot says my account is not linked
+
+Send `/link` and complete the approval step in your browser.
+
+### The bot says no tunnel was found
+
+Run `/services` first, then use one of the active tunnel subdomains or IDs with `/logs`.
+
+### `/logs` does not return anything
+
+Logs are only available for active tunnels, and some tunnels may not have recent log lines yet.
+
+### I want to connect a different Mekong account
+
+Send `/unlink`, then run `/link` again and approve with the correct Mekong account.
