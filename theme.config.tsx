@@ -62,15 +62,15 @@ function buildDocsIssueUrl({
 
 const config: DocsThemeConfig = {
   logo: (
-    <span className="flex items-center gap-2.5 font-bold tracking-tight">
+    <span className="flex min-w-0 items-center gap-2 font-bold tracking-tight sm:gap-2.5">
       <img
         src="/MekongNoBG.png"
         alt="MekongTunnel"
         width={36}
         height={36}
-        className="shrink-0"
+        className="h-8 w-8 shrink-0 sm:h-9 sm:w-9"
       />
-      <span className="text-base sm:text-lg">MekongTunnel</span>
+      <span className="truncate text-sm sm:text-lg">MekongTunnel</span>
     </span>
   ),
 
@@ -130,14 +130,14 @@ const config: DocsThemeConfig = {
   // Navbar — theme toggle + website link side by side
   navbar: {
     extraContent: (
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         <VersionSwitcher />
         <ThemeToggle />
         <a
           href={SITE_URL}
           target="_blank"
           rel="noreferrer"
-          className="hidden sm:inline-flex h-9 items-center px-3 rounded-lg text-sm font-medium
+          className="hidden sm:inline-flex h-9 items-center rounded-lg px-3 text-sm font-medium
                      text-gray-600 dark:text-gray-400
                      hover:text-gray-900 dark:hover:text-white
                      hover:bg-gray-100 dark:hover:bg-gray-800

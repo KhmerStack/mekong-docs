@@ -43,7 +43,7 @@ export function VersionSwitcher() {
     <div ref={ref} className="relative flex items-center">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium
+        className="flex h-8 items-center gap-1 px-2 rounded-lg text-xs font-medium sm:h-9 sm:gap-1.5 sm:px-3 sm:text-sm
                    text-gray-600 dark:text-gray-400
                    hover:text-gray-900 dark:hover:text-white
                    hover:bg-gray-100 dark:hover:bg-gray-800
@@ -55,7 +55,7 @@ export function VersionSwitcher() {
       >
         <span suppressHydrationWarning>{current.label}</span>
         {current.beta && (
-          <span className="text-[10px] font-bold uppercase tracking-wide
+          <span className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wide
                            text-amber-600 dark:text-amber-400
                            bg-amber-50 dark:bg-amber-900/30
                            px-1.5 py-0.5 rounded">
@@ -63,7 +63,7 @@ export function VersionSwitcher() {
           </span>
         )}
         {isLatest && !current.beta && (
-          <span className="text-[10px] font-bold uppercase tracking-wide
+          <span className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wide
                            text-emerald-600 dark:text-emerald-400
                            bg-emerald-50 dark:bg-emerald-900/30
                            px-1.5 py-0.5 rounded">
@@ -71,7 +71,7 @@ export function VersionSwitcher() {
           </span>
         )}
         <svg
-          className={`w-3 h-3 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
+          className={`h-3 w-3 shrink-0 transition-transform duration-150 ${open ? 'rotate-180' : ''}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -83,7 +83,7 @@ export function VersionSwitcher() {
 
       {open && (
         <div
-          className="absolute top-full right-0 mt-1 min-w-[10rem] z-50
+          className="absolute top-full right-0 z-50 mt-1 min-w-[9rem] sm:min-w-[10rem]
                      bg-white dark:bg-gray-900
                      border border-gray-200 dark:border-gray-700
                      rounded-lg shadow-lg overflow-hidden"
