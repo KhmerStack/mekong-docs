@@ -1,6 +1,6 @@
 ---
 title: Telegram Bot
-description: Use the Mekong Telegram bot to check your account, active tunnels, recent logs, reserved subdomains, and custom domains.
+description: Use the Mekong Telegram bot to check your account, active tunnels, recent logs, reserved subdomains, custom domains, and automatic alerts.
 ---
 
 import { Callout } from 'nextra/components'
@@ -8,23 +8,79 @@ import { FaTelegramPlane } from 'react-icons/fa'
 
 # Telegram Bot
 
-<div className="not-prose my-6 rounded-2xl border border-sky-200 bg-sky-50 p-5 dark:border-sky-900 dark:bg-sky-950/40">
-  <div className="flex items-center gap-3">
-    <FaTelegramPlane className="h-7 w-7 text-sky-500" />
-    <div>
-      <p className="m-0 text-lg font-semibold text-slate-900 dark:text-slate-100">Mekong Telegram Bot</p>
-      <p className="m-0 text-sm text-slate-700 dark:text-slate-300">Read-only account and tunnel status from Telegram.</p>
+<div className="not-prose relative overflow-hidden rounded-[28px] border border-sky-200 bg-[radial-gradient(circle_at_top_left,_rgba(14,165,233,0.18),_transparent_42%),linear-gradient(135deg,_#f0f9ff_0%,_#ecfeff_50%,_#ffffff_100%)] p-6 shadow-sm dark:border-sky-900 dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.16),_transparent_40%),linear-gradient(135deg,_rgba(12,74,110,0.55)_0%,_rgba(8,47,73,0.7)_45%,_rgba(2,6,23,0.95)_100%)]">
+  <div className="flex flex-col gap-5">
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center gap-4">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500 text-white shadow-lg shadow-sky-500/25">
+          <FaTelegramPlane className="h-7 w-7" />
+        </div>
+        <div>
+          <p className="m-0 text-xs font-semibold uppercase tracking-[0.24em] text-sky-700 dark:text-sky-300">Mekong Bot</p>
+          <p className="m-0 text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50">Telegram Bot</p>
+          <p className="mt-2 mb-0 max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300">
+            Check tunnels, logs, subdomains, domains, and monitoring alerts from Telegram with short, status-focused replies.
+          </p>
+        </div>
+      </div>
+      <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300">
+        Available Now
+      </div>
+    </div>
+
+    <div className="grid gap-3 sm:grid-cols-3">
+      <div className="rounded-2xl border border-white/70 bg-white/70 p-4 backdrop-blur dark:border-white/10 dark:bg-white/5">
+        <p className="m-0 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 dark:text-sky-300">Mode</p>
+        <p className="mt-2 mb-0 text-sm text-slate-700 dark:text-slate-300">Read-only bot for account and tunnel visibility.</p>
+      </div>
+      <div className="rounded-2xl border border-white/70 bg-white/70 p-4 backdrop-blur dark:border-white/10 dark:bg-white/5">
+        <p className="m-0 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 dark:text-sky-300">Chat Type</p>
+        <p className="mt-2 mb-0 text-sm text-slate-700 dark:text-slate-300">Private chats only for now.</p>
+      </div>
+      <div className="rounded-2xl border border-white/70 bg-white/70 p-4 backdrop-blur dark:border-white/10 dark:bg-white/5">
+        <p className="m-0 text-xs font-semibold uppercase tracking-[0.2em] text-sky-700 dark:text-sky-300">Alerts</p>
+        <p className="mt-2 mb-0 text-sm text-slate-700 dark:text-slate-300">Linked users now receive automatic monitoring alerts.</p>
+      </div>
     </div>
   </div>
 </div>
 
 <Callout type="success">
-Telegram bot is available now.
+Telegram bot is live now. It works best when replies are short, easy to scan, and clearly show whether something is healthy, pending, or broken.
 </Callout>
 
 Use the Mekong Tunnel Bot in Telegram to check your Mekong account, active tunnels, recent logs, reserved subdomains, and custom domains.
 
 This bot is read-only. It does not start tunnels, stop tunnels, or change your account from Telegram.
+
+## What it is good at
+
+<div className="not-prose grid gap-4 md:grid-cols-2">
+  <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+    <p className="m-0 text-sm font-semibold text-slate-900 dark:text-slate-100">Fast status checks</p>
+    <p className="mt-2 mb-0 text-sm leading-6 text-slate-600 dark:text-slate-300">
+      Open Telegram and immediately see whether a tunnel or domain is healthy, pending, failed, or recovered.
+    </p>
+  </div>
+  <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+    <p className="m-0 text-sm font-semibold text-slate-900 dark:text-slate-100">Clean incident flow</p>
+    <p className="mt-2 mb-0 text-sm leading-6 text-slate-600 dark:text-slate-300">
+      Alerts and command replies point the user to the next useful command instead of dumping too much text.
+    </p>
+  </div>
+  <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+    <p className="m-0 text-sm font-semibold text-slate-900 dark:text-slate-100">Safe logs in chat</p>
+    <p className="mt-2 mb-0 text-sm leading-6 text-slate-600 dark:text-slate-300">
+      Recent logs stay plain text for easy copy and forwarding, while known secrets are redacted before delivery.
+    </p>
+  </div>
+  <div className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+    <p className="m-0 text-sm font-semibold text-slate-900 dark:text-slate-100">Simple monitoring UX</p>
+    <p className="mt-2 mb-0 text-sm leading-6 text-slate-600 dark:text-slate-300">
+      Status icons, short sections, and compact templates make Telegram replies easy to scan on mobile.
+    </p>
+  </div>
+</div>
 
 ## Add the bot
 
@@ -49,6 +105,49 @@ Notes:
 - If your Telegram account is already linked, use `/unlink` first before linking again.
 - If your Mekong account is suspended, the bot will not return account data until the account is restored.
 
+## Response design
+
+Telegram works best when replies are short, easy to scan, and clearly show whether something is healthy, pending, or broken.
+
+Recommended response style:
+
+- Keep the first line status-focused.
+- Use short sections instead of long paragraphs.
+- Show the service or domain name near the top.
+- Highlight the current state with simple icons such as `🟢`, `🟡`, and `🔴`.
+- End with the next useful command when the user may need to investigate more.
+
+<div className="not-prose rounded-2xl border border-sky-200 bg-sky-50 p-5 dark:border-sky-900 dark:bg-sky-950/30">
+  <p className="m-0 text-sm font-semibold text-slate-900 dark:text-slate-100">Good pattern</p>
+</div>
+
+```text
+<status icon> <resource name>
+Key detail 1
+Key detail 2
+Key detail 3
+
+Next step: <recommended command>
+```
+
+<div className="not-prose rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+  <p className="m-0 text-sm font-semibold text-slate-900 dark:text-slate-100">Visual status language</p>
+  <div className="mt-4 space-y-3 text-sm text-slate-700 dark:text-slate-300">
+    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+      <span>Healthy</span>
+      <span className="font-semibold">🟢 Active</span>
+    </div>
+    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+      <span>Needs attention</span>
+      <span className="font-semibold">🟡 Pending</span>
+    </div>
+    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800">
+      <span>Broken</span>
+      <span className="font-semibold">🔴 Failed</span>
+    </div>
+  </div>
+</div>
+
 ## Commands
 
 ### `/start`
@@ -58,13 +157,50 @@ Starts the conversation with the bot.
 - If your account is not linked yet, the bot asks you to use `/link`.
 - If your account is already linked, the bot shows a welcome-back message.
 
+Suggested reply template:
+
+```text
+Hi <first_name>!
+
+Link your Mekong account to view active tunnels, logs, subdomains, and domain status.
+
+Use /link to begin.
+```
+
 ### `/help`
 
 Shows the command list.
 
+Suggested reply template:
+
+```text
+Mekong Tunnel Bot
+
+Available commands:
+/link
+/me
+/services
+/logs <id>
+/subdomains
+/domains
+/domain <host>
+/unlink
+/help
+```
+
 ### `/link`
 
 Starts the browser approval flow to connect Telegram to your Mekong account.
+
+Suggested reply template:
+
+```text
+Open the link below to connect your Mekong account:
+
+<approval_url>
+
+This link expires in 10 minutes.
+```
 
 ### `/me`
 
@@ -75,6 +211,17 @@ Shows your Mekong account summary, including:
 - Plan
 - Account type
 
+Suggested reply template:
+
+```text
+Your Mekong Account
+
+Email: user@example.com
+Status: verified
+Plan: PRO
+Account: PERSONAL
+```
+
 ### `/services`
 
 Lists your active tunnels.
@@ -84,6 +231,33 @@ Each result includes:
 - Subdomain
 - Local port
 - Request count
+
+Suggested reply template:
+
+```text
+Active Tunnels (2)
+
+🟢 myapp
+Port: 3000 | Requests: 1284
+
+🟢 admin
+Port: 8080 | Requests: 214
+```
+
+For monitoring, this should be the easiest command to scan quickly.
+
+Recommended order:
+
+- Status icon
+- Subdomain
+- Local port
+- Request count
+
+If you later want a richer version, add:
+
+- Last seen time
+- Current custom domain
+- Local service health
 
 ### `/logs <subdomain-or-id>`
 
@@ -103,9 +277,32 @@ Notes:
 - The bot returns up to the last 20 log lines.
 - Known secrets such as bearer tokens, cookies, API keys, and passwords are redacted before logs are sent to Telegram.
 
+Suggested reply template:
+
+```text
+Recent logs: myapp
+
+[2026-04-08 09:12:01] GET / 200
+[2026-04-08 09:12:04] GET /api/health 200
+[2026-04-08 09:12:10] GET /login 500
+[2026-04-08 09:12:10] error=database timeout
+```
+
+For Telegram, plain text is better than a very long formatted block. The user should be able to copy, scan, and forward it easily.
+
 ### `/subdomains`
 
 Lists your reserved subdomains.
+
+Suggested reply template:
+
+```text
+Reserved Subdomains (3)
+
+- myapp
+- admin
+- preview-team
+```
 
 ### `/domains`
 
@@ -117,6 +314,18 @@ Common statuses include:
 - `active`
 - `pending`
 - `failed`
+
+Suggested reply template:
+
+```text
+Custom Domains (3)
+
+✅ app.example.com - active
+⏳ api.example.com - pending
+❌ admin.example.com - failed
+```
+
+This command should feel like a quick health board for domain monitoring.
 
 ### `/domain <hostname>`
 
@@ -135,11 +344,156 @@ The bot can show:
 - Verification time
 - Created time
 
+Suggested reply template:
+
+```text
+Domain: app.example.com
+
+Status: ✅ active
+Target: myapp
+Verified: Tue, 08 Apr 2026 09:20:00 KST
+Added: Tue, 01 Apr 2026 14:10:00 KST
+```
+
+If the domain is broken, this command should make the problem obvious immediately.
+
 ### `/unlink`
 
 Disconnects your Telegram chat from your Mekong account.
 
 After unlinking, account commands such as `/me`, `/services`, `/logs`, `/subdomains`, and `/domains` will stop working until you link again.
+
+Suggested reply template:
+
+```text
+Your Telegram account has been unlinked from Mekong.
+```
+
+## Automatic alerts
+
+<Callout type="info">
+The Telegram bot now sends automatic monitoring alerts to linked Telegram users.
+</Callout>
+
+Current alert behavior:
+
+- Tunnel status changed to `stopped` or `inactive` -> tunnel down alert
+- Tunnel status changed to `failed` or `error` -> tunnel issue alert
+- Tunnel status changed back to `active` -> tunnel recovered alert
+- Custom domain created -> domain pending alert
+- Custom domain verification passed but HTTPS is still not ready -> domain pending alert
+- Custom domain verification failed -> domain failed alert
+- Custom domain verification passed and HTTPS is ready -> domain ready alert
+- Custom domain target changed -> domain updated alert
+
+Who receives alerts:
+
+- Personal tunnel alerts go to the linked Telegram account for that Mekong user.
+- Personal domain alerts go to the linked Telegram account for that Mekong user.
+- Team-owned domain alerts go to linked Telegram accounts for the team owner, admins, and teachers.
+- Admin-triggered tunnel and domain changes use the same Telegram alert flow.
+
+Note: alerts are only delivered when the recipient has already linked Telegram to their Mekong account.
+
+### Tunnel down alert
+
+```text
+🔴 Tunnel Down
+
+Service: myapp
+Last known port: 3000
+Issue: tunnel is no longer active
+
+Check: /services
+Then: /logs myapp
+```
+
+### Tunnel issue alert
+
+```text
+🟡 Tunnel Issue
+
+Service: myapp
+Recent symptom: status changed to failed
+
+Check: /services
+Then: /logs myapp
+```
+
+### Domain pending alert
+
+```text
+🟡 Domain Pending
+
+Domain: app.example.com
+Status: pending
+Reason: DNS or HTTPS setup is not complete yet
+
+Check: /domain app.example.com
+```
+
+### Domain failed alert
+
+```text
+🔴 Domain Failed
+
+Domain: app.example.com
+Status: failed
+Reason: verification did not pass
+
+Check: /domain app.example.com
+```
+
+### Domain ready alert
+
+```text
+✅ Domain Ready
+
+Domain: app.example.com
+Target: myapp
+Status: verified and HTTPS is ready
+
+Check: /domain app.example.com
+```
+
+### Domain updated alert
+
+```text
+🟡 Domain Updated
+
+Domain: app.example.com
+Target: myapp
+Status: route updated
+
+Check: /domain app.example.com
+```
+
+### Tunnel recovered alert
+
+```text
+🟢 Tunnel Recovered
+
+Service: myapp
+Status: active again
+
+Check: /services
+```
+
+### Link approved message
+
+```text
+✅ Your Telegram account is now linked to <name or email>.
+
+Use /services to check active tunnels or /help to see all commands.
+```
+
+### Account suspended message
+
+```text
+Your Mekong account is suspended.
+
+Manage your account in the dashboard to restore Telegram access.
+```
 
 ## Quick command list
 
