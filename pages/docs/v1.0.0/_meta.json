@@ -5,6 +5,7 @@
   },
   "getting-started": "Getting Started",
   "installation": "Installation",
+  "deployments": "Deployments",
   "how-it-works": "How It Works",
   "-- Configuration": {
     "type": "separator",

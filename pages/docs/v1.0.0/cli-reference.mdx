@@ -18,6 +18,9 @@ mekong status [name|port]
 mekong logs [-f] [name|port]
 mekong stop <port>
 mekong stop --all
+mekong deploy <path>
+mekong deploy list
+mekong deploy stop <subdomain>
 mekong rm
 mekong rm -f [name]
 mekong subdomain [list|add|delete] [name]
@@ -109,6 +112,15 @@ mekong --token mkt_xxx 3000          # one-shot token override
 | `mekong detect --json` | Output detection data as JSON for scripting |
 | `mekong init` | Write `.mekong.json` for this project |
 | `mekong doctor` | Check connectivity, auth, and config |
+
+### Deployments
+
+| Command | Description |
+|---------|-------------|
+| `mekong deploy <path>` | Package a directory as zip and upload it to hosted deployments |
+| `mekong deploy` | List your current deployments |
+| `mekong deploy list` | List your current deployments |
+| `mekong deploy stop <subdomain>` | Stop one hosted deployment |
 
 ---
 
@@ -223,6 +235,11 @@ mekong stop 3000
 mekong rm                                        # clear random tunnels; reserved are protected
 mekong rm -f                                     # force-clear all logs
 mekong rm -f onlyanime                           # clear logs for one named tunnel
+
+# Hosted deployments
+mekong deploy ./dist
+mekong deploy list
+mekong deploy stop my-site
 
 # Multiple ports
 mekong 3000 8080
