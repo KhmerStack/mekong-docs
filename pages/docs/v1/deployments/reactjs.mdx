@@ -1,0 +1,69 @@
+---
+title: Deploy React.js
+description: Build your React app and upload the static output to Mekong hosted deployments.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy React.js
+
+React apps work well with Mekong hosted deployment as long as you upload the built static output instead of the source project.
+
+<Callout type="info">
+Upload the build output folder, not your full source repository. Common output folders are `dist/` for Vite and `build/` for Create React App.
+</Callout>
+
+## Vite React
+
+Build the app:
+
+```bash
+npm run build
+```
+
+Vite writes the production files to `dist/`. Upload that folder:
+
+```bash
+mekong deploy ./dist
+```
+
+## Create React App
+
+Build the app:
+
+```bash
+npm run build
+```
+
+Create React App writes the production files to `build/`. Upload that folder:
+
+```bash
+mekong deploy ./build
+```
+
+## Dashboard upload
+
+If you prefer the dashboard:
+
+1. Run the production build
+2. Zip `dist/` or `build/`
+3. Open `/dashboard/deploy`
+4. Upload the zip and wait for the live URL
+
+## What is supported
+
+Hosted deployment works well for:
+
+- single-page React apps
+- static marketing sites
+- React builds produced by Vite or Create React App
+
+## When to use a tunnel instead
+
+Use a normal Mekong tunnel if your React project depends on:
+
+- a live dev server with HMR
+- a backend running on your machine
+- server-side rendering
+
+For development, see the existing [Vite](/docs/node/vite) and [Next.js](/docs/node/nextjs) tunnel guides.

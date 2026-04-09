@@ -1,0 +1,82 @@
+---
+title: Deployment
+description: Upload built files to Mekong hosted deployments, or use a tunnel when your app needs a runtime.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deployment
+
+Mekong hosted deployment lets you upload prebuilt files and keep the site online without leaving your machine running.
+
+This section is split by stack so the sidebar shows the deployment guides directly:
+
+- [index.html](/docs/deployments/index-html)
+- [React.js](/docs/deployments/reactjs)
+- [Next.js](/docs/deployments/nextjs)
+- [PHP](/docs/deployments/php)
+- [Spring Boot](/docs/deployments/spring-boot)
+
+<Callout type="warning">
+Hosted deployment is currently static-file hosting. Upload built files such as `index.html`, `dist/`, `build/`, or `out/`. Mekong does not execute PHP or run a Spring Boot JAR in the hosted deployment path today.
+</Callout>
+
+## What works today
+
+| Stack | Hosted upload | What to upload |
+|------|------|------|
+| Plain HTML / CSS / JS | Yes | A zip with `index.html` at the archive root |
+| React.js | Yes | Your built `dist/` or `build/` output |
+| Next.js | Yes, static export only | The generated `out/` folder |
+| PHP | No runtime support | Use a normal Mekong tunnel |
+| Spring Boot | No runtime support | Run the JAR yourself and tunnel the app port |
+
+## Dashboard flow
+
+1. Open `/dashboard/deploy`
+2. Choose the deployment type
+3. Pick your subdomain
+4. Upload a `.zip`
+5. Wait for the deployment to become live
+
+## CLI flow
+
+Use the CLI when you already have a built output directory:
+
+```bash
+mekong deploy ./dist
+mekong deploy list
+mekong deploy stop my-site
+```
+
+The CLI zips the directory, uploads it, and prints the live URL when it is ready.
+
+## Public URL
+
+Hosted deployments are served from:
+
+```text
+https://<subdomain>.proxy.mekongtunnel.dev
+```
+
+## Plan requirement
+
+Hosted deployments currently require a paid plan:
+
+- `student`
+- `pro`
+- `org`
+
+## Choose the right path
+
+Use hosted deployment when:
+
+- you already have static output
+- you want the site to stay online after your laptop disconnects
+- you want a simple zip upload flow
+
+Use a normal tunnel when:
+
+- your app needs server-side code execution
+- you need PHP, Java, or another long-running runtime
+- you want requests to hit your live local dev server

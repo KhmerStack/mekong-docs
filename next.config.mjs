@@ -26,9 +26,9 @@ export default withNextra({
         destination: `/docs/${LATEST_VERSION}/:slug`,
         permanent: true,
       },
-      // Nested framework pages: /docs/node/express → /docs/v1.0.0/node/express
+      // Nested docs pages: /docs/node/express → /docs/v1.0.0/node/express
       {
-        source: '/docs/:section(node|python)/:slug',
+        source: '/docs/:section(node|python|deployments)/:slug',
         destination: `/docs/${LATEST_VERSION}/:section/:slug`,
         permanent: true,
       },

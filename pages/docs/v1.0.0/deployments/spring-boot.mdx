@@ -1,0 +1,68 @@
+---
+title: Deploy Spring Boot
+description: Hosted deployments do not run a Spring Boot JAR today; build and run the JAR yourself, then expose it with Mekong.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy Spring Boot
+
+Spring Boot JAR uploads are not supported in Mekong hosted deployment today.
+
+<Callout type="warning">
+Hosted deployment does not start a Java runtime for uploaded artifacts. If you upload a `.jar`, it will not boot your application. Run the Spring Boot app yourself and tunnel the port instead.
+</Callout>
+
+## Maven workflow
+
+Build the JAR:
+
+```bash
+./mvnw clean package
+```
+
+Run it locally:
+
+```bash
+java -jar target/app.jar
+```
+
+Expose the running app:
+
+```bash
+mekong 8080
+```
+
+## Gradle workflow
+
+Build the JAR:
+
+```bash
+./gradlew bootJar
+```
+
+Run it locally:
+
+```bash
+java -jar build/libs/app.jar
+```
+
+Expose the running app:
+
+```bash
+mekong 8080
+```
+
+## Optional one-time project setup
+
+Save the default port and start command in `.mekong.json`:
+
+```bash
+mekong init --port 8080 --start "java -jar target/app.jar"
+```
+
+After that, plain `mekong` can reuse the saved settings.
+
+## If your project has a static frontend
+
+If the deployable part is only static frontend assets, upload those built files instead of the JAR. Otherwise, use a normal tunnel for the running Spring Boot server.

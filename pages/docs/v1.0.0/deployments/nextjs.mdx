@@ -1,0 +1,79 @@
+---
+title: Deploy Next.js
+description: Use hosted deployment for static-exported Next.js apps, or a normal Mekong tunnel for SSR.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy Next.js
+
+Next.js can be uploaded to Mekong hosted deployment only when the app is exported as static files.
+
+<Callout type="warning">
+Server-rendered Next.js is not part of the hosted deployment runtime. If your app uses SSR, API routes, route handlers, or server actions, run the app yourself and expose it with a normal Mekong tunnel.
+</Callout>
+
+## Static export workflow
+
+Configure your app for static export in `next.config.js` or `next.config.mjs`:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'export',
+}
+
+export default nextConfig
+```
+
+Build the project:
+
+```bash
+npm run build
+```
+
+Next.js writes the exported site to `out/`. Upload that folder:
+
+```bash
+mekong deploy ./out
+```
+
+## Dashboard upload
+
+1. Enable static export
+2. Run `npm run build`
+3. Zip the `out/` folder
+4. Upload it from `/dashboard/deploy`
+
+## What works in hosted deployment
+
+- static pages
+- static assets
+- client-side React behavior in the exported site
+
+## What does not work in hosted deployment
+
+- SSR
+- API routes
+- route handlers
+- server actions
+- any runtime that expects a Node.js server process
+
+## Use a tunnel for full Next.js runtime
+
+For full Next.js behavior:
+
+```bash
+npm run dev
+mekong 3000
+```
+
+Or run the production server yourself and expose that port:
+
+```bash
+npm run build
+npm run start
+mekong 3000
+```
+
+See the full [Next.js tunnel guide](/docs/node/nextjs) for development-focused setup.

@@ -1,0 +1,62 @@
+---
+title: Deploy `index.html`
+description: Upload a plain HTML, CSS, and JavaScript site to Mekong hosted deployments.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy `index.html`
+
+Plain HTML sites are the best fit for Mekong hosted deployment.
+
+<Callout type="success">
+If your zip already contains `index.html`, CSS, images, and JavaScript files, you can upload it directly. No runtime is needed.
+</Callout>
+
+## Recommended folder layout
+
+Make sure `index.html` is at the root of the uploaded archive:
+
+```text
+site/
+  index.html
+  styles.css
+  app.js
+  assets/
+    logo.png
+```
+
+If you zip the folder, the extracted deployment should still have `index.html` at the top level.
+
+## Dashboard upload
+
+1. Put your site files in one folder
+2. Zip that folder
+3. Open `/dashboard/deploy`
+4. Upload the zip
+5. Open the generated Mekong URL
+
+## CLI upload
+
+If your site folder is already ready, deploy it directly:
+
+```bash
+mekong deploy ./site
+```
+
+## Before you upload
+
+- keep links and asset URLs relative when possible
+- include every referenced asset inside the uploaded folder
+- confirm the entry file is named `index.html`
+
+## When not to use hosted deployment
+
+Do not use hosted deployment if the page depends on:
+
+- PHP
+- Java or Spring Boot
+- server-side rendering
+- a database-backed app process
+
+For those cases, run the app yourself and expose it with a normal Mekong tunnel.

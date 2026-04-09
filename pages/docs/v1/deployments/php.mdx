@@ -1,0 +1,53 @@
+---
+title: Deploy PHP
+description: Hosted deployments do not execute PHP today; use a Mekong tunnel for Laravel, WordPress, and other PHP apps.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy PHP
+
+PHP is not supported in Mekong hosted deployment today.
+
+<Callout type="warning">
+Uploading `.php` files to hosted deployment will not start a PHP runtime. Mekong hosted deployment currently serves static files only.
+</Callout>
+
+## What to do instead
+
+Run your PHP app locally or on your own server, then expose that running app with a normal Mekong tunnel.
+
+## Laravel built-in server
+
+```bash
+php artisan serve --host=127.0.0.1 --port=8000
+mekong 8000
+```
+
+## Apache virtual host
+
+For Laragon, XAMPP, or WAMP-style setups, pass the upstream host so the app receives the expected `Host` header:
+
+```bash
+mekong 80 --upstream-host myapp.test
+mekong init --port 80 --upstream-host myapp.test
+```
+
+## WordPress
+
+```bash
+mekong 80 --upstream-host wordpress.test
+```
+
+## If you only have static output
+
+If your PHP project generates a pure static export, upload the generated HTML, CSS, and JS files instead of the PHP source itself. In that case, follow the [`index.html`](/docs/deployments/index-html) guide.
+
+## Best fit for PHP
+
+Use a tunnel when you need:
+
+- Laravel or Symfony routing
+- WordPress or other CMS logic
+- sessions, auth, or database calls
+- any executable PHP code
