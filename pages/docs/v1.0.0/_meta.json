@@ -1,70 +1,38 @@
 {
-  "-- Getting Started": {
+  "-- start": {
     "type": "separator",
     "title": "Get Started"
   },
   "getting-started": "Getting Started",
-  "installation": "Installation",
-  "how-it-works": "How It Works",
-  "-- Deployments": {
+  "installation":    "Installation",
+  "how-it-works":    "How It Works",
+
+  "-- deploy": {
     "type": "separator",
     "title": "Deployments"
   },
   "deployments-overview": "Overview",
-  "-- Frontend": {
+  "frontend":             "Frontend",
+  "backend":              "Backend",
+
+  "-- integrations": {
     "type": "separator",
-    "title": "Frontend"
+    "title": "Integrations"
   },
-  "index-html": "HTML",
-  "reactjs": "React.js",
-  "vue-vite": "Vue + Vite",
-  "nextjs": "Next.js",
-  "nextjs-api": "Next.js API",
-  "php": "PHP",
-  "-- Backend": {
-    "type": "separator",
-    "title": "Backend"
-  },
-  "backend": "Backend Overview",
-  "go": "Go",
-  "fastapi": "FastAPI",
-  "php-laravel": "PHP / Laravel",
-  "aspnet": "ASP.NET",
-  "spring-boot": "Spring Boot",
-  "express-fastify": "Express / Fastify",
-  "-- Configuration": {
+  "bot":    "Bot Integrations",
+  "node":   "Node.js Frameworks",
+  "python": "Python Frameworks",
+
+  "-- config": {
     "type": "separator",
     "title": "Configuration"
   },
-  "configuration": "Configuration",
-  "cli-reference": "CLI Reference",
-  "npm-cli": "NPM CLI",
-  "vscode-extension": "VS Code Extension",
-  "bot": "Bot",
-  "-- Node.js": {
+  "config": "Config & Tools",
+
+  "-- more": {
     "type": "separator",
-    "title": "Node.js Frameworks"
+    "title": "More"
   },
-  "node": "Node.js",
-  "-- Python": {
-    "type": "separator",
-    "title": "Python Frameworks"
-  },
-  "python": "Python",
-  "-- Advanced": {
-    "type": "separator",
-    "title": "Advanced"
-  },
-  "authentication": "Authentication",
-  "stats-api": "Stats API",
-  "self-hosting": "Self-Hosting",
-  "security": "Security",
-  "cookies": "Cookies",
-  "-- Legal": {
-    "type": "separator",
-    "title": "Legal"
-  },
-  "faq": "FAQ",
-  "terms": "Terms of Service",
-  "privacy": "Privacy Policy"
+  "advanced": "Advanced",
+  "legal":    "Legal"
 }

@@ -1,0 +1,7 @@
+{
+  "authentication": "Authentication",
+  "stats-api":      "Stats API",
+  "self-hosting":   "Self-Hosting",
+  "security":       "Security",
+  "cookies":        "Cookies"
+}

@@ -1,0 +1,9 @@
+{
+  "index":      "Overview",
+  "index-html": "HTML",
+  "reactjs":    "React.js",
+  "vue-vite":   "Vue + Vite",
+  "nextjs":     "Next.js",
+  "nextjs-api": "Next.js (API Routes)",
+  "php":        "PHP"
+}

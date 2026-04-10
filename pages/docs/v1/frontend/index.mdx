@@ -1,0 +1,30 @@
+---
+title: Frontend Deployments
+description: Deploy frontend apps through the Mekong dashboard upload flow using stack-specific build outputs.
+---
+
+# Frontend Deployments
+
+Use the Mekong dashboard upload flow to deploy built frontend assets.
+
+## How it works
+
+1. Build your app for production
+2. Zip the output folder
+3. Upload from `/dashboard/deploy`
+4. Choose the correct stack template
+5. Go live on your Mekong subdomain
+
+## Stack templates
+
+| Stack | Template | Upload this |
+|---|---|---|
+| Plain HTML / CSS / JS | `static` | Folder containing `index.html` |
+| React (CRA) | `static` | Contents of `build/` |
+| React Vite | `static` | Contents of `dist/` |
+| Vue + Vite | `static` | Contents of `dist/` |
+| Next.js | `nextjs` | Prepared standalone server root |
+| Next.js API | `nextjs` | Prepared standalone server root |
+| PHP | `php` | Runtime-ready app root with `index.php` |
+
+Select the guide for your stack from the sidebar.
