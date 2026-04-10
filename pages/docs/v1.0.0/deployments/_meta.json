@@ -1,16 +1,16 @@
 {
   "index": "Overview",
-  "-- Frontend": {
+  "frontend": {
     "type": "separator",
     "title": "Frontend"
   },
-  "index-html": "index.html",
+  "index-html": "HTML",
   "reactjs": "React.js",
-  "vue-vite": "Vue Vite",
+  "vue-vite": "Vue + Vite",
   "nextjs": "Next.js",
   "nextjs-api": "Next.js API",
   "php": "PHP",
-  "-- Backend": {
+  "backend-separator": {
     "type": "separator",
     "title": "Backend"
   },
