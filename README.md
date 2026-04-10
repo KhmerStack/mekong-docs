@@ -35,7 +35,7 @@ cp -r pages/docs/v1 pages/docs/v2
 ```ts
 export const VERSIONS = [
   { id: 'v2', label: 'v2', beta: false },
-  { id: 'v2', label: 'v2', beta: false },  // ← new latest
+  { id: 'v2', label: 'v2', beta: false },  // ← new latestd
   { id: 'v1', label: 'v1', beta: false },
 ] satisfies VersionEntry[]
 ```
