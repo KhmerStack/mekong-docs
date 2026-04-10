@@ -1,11 +1,25 @@
 {
   "index": "Overview",
-  "backend": "Backend",
+  "-- Frontend": {
+    "type": "separator",
+    "title": "Frontend"
+  },
   "index-html": "index.html",
   "reactjs": "React.js",
   "vue-vite": "Vue Vite",
   "nextjs": "Next.js",
   "nextjs-api": "Next.js API",
   "php": "PHP",
+  "-- Backend": {
+    "type": "separator",
+    "title": "Backend"
+  },
+  "backend": "Backend Overview",
+  "go": "Go",
+  "fastapi": "FastAPI",
+  "php-laravel": "PHP / Laravel",
+  "aspnet": "ASP.NET",
   "spring-boot": "Spring Boot"
+  ,
+  "express-fastify": "Express / Fastify"
 }

@@ -1,0 +1,55 @@
+---
+title: Deploy Go
+description: Run your Go backend locally and expose it with Mekong on the port it listens on.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy Go
+
+Go backends work through a normal Mekong tunnel. Start the server locally, then expose its port.
+
+<Callout type="info">
+This is the right setup for plain `net/http`, Gin, Fiber, Echo, Chi, and similar Go servers.
+</Callout>
+
+## Basic flow
+
+```bash
+go run main.go
+mekong 8080
+```
+
+Replace `8080` with the port your Go server actually listens on.
+
+## Common Go examples
+
+```bash
+# Gin
+go run main.go
+mekong 8080
+
+# Fiber
+go run main.go
+mekong 3000
+
+# Echo
+go run main.go
+mekong 1323
+```
+
+## Frontend + backend split
+
+If you have a React or Vue frontend:
+
+- upload the built frontend through `/dashboard/deploy`
+- keep the Go API running locally or on your VM
+- expose the API port with `mekong <port>`
+
+## When to use this
+
+Use a tunnel when:
+
+- the Go backend should run as a live process
+- you are testing APIs, webhooks, or callbacks
+- requests should reach your running backend directly

@@ -1,0 +1,36 @@
+---
+title: Deploy Express / Fastify
+description: Run a Node.js backend locally and expose it with Mekong on the server port.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy Express / Fastify
+
+Node.js backends like Express and Fastify work by starting the local server and tunneling its port.
+
+<Callout type="info">
+For broader Node framework examples, also see [Express / Fastify](/docs/node/express).
+</Callout>
+
+## Express
+
+```bash
+node server.js
+mekong 3000
+```
+
+## Fastify
+
+```bash
+node server.js
+mekong 3000
+```
+
+## Best fit
+
+Use this when:
+
+- your Node backend is already running locally
+- you want to expose APIs or webhooks
+- the backend should stay as a live process instead of a packaged dashboard upload

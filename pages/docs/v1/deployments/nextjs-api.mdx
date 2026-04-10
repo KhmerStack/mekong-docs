@@ -1,0 +1,70 @@
+---
+title: Deploy Next.js API
+description: Package the standalone Next.js output for projects built around API routes or route handlers.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy Next.js API
+
+Use this guide when your Next.js project is mostly API endpoints, route handlers, or server-side logic, but you still want to deploy it through the `nextjs` dashboard runtime.
+
+<Callout type="info">
+The `Next.js API` dashboard template packages the same standalone output used by the main Next.js template. The difference is only the guidance, not the runtime family.
+</Callout>
+
+## 1. Enable standalone output
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  output: 'standalone',
+}
+
+export default nextConfig
+```
+
+## 2. Build the project
+
+```bash
+npm run build
+```
+
+## 3. Copy required runtime assets
+
+```bash
+cp -R public .next/standalone/public
+mkdir -p .next/standalone/.next
+cp -R .next/static .next/standalone/.next/static
+```
+
+## 4. Zip the standalone root
+
+```bash
+cd .next/standalone
+zip -r ../../nextjs-api.zip .
+```
+
+Upload `nextjs-api.zip` with the `Next.js API` template in `/dashboard/deploy`.
+
+## Works for
+
+- `pages/api/*`
+- `app/api/*`
+- route handlers
+- mixed apps where APIs are the main concern
+
+## Archive expectation
+
+After unzip, the standalone server root should be at the top level of the archive:
+
+```text
+server.js
+package.json
+public/...
+.next/static/...
+```
+
+## When to use the main Next.js guide instead
+
+Use [Deploy Next.js](/docs/deployments/nextjs) when the project is a normal full app with pages and UI as the primary concern.

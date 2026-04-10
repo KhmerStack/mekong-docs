@@ -1,0 +1,64 @@
+---
+title: Deploy Vue Vite
+description: Build your Vue Vite app and upload only the compiled dist output to Mekong hosted deployments.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy Vue Vite
+
+Vue apps created with Vite should be uploaded as compiled static files, not as the raw source repository.
+
+<Callout type="info">
+Use the `Vue Vite` template in the dashboard. It maps to the `static` deploy runtime.
+</Callout>
+
+## 1. Build the app
+
+```bash
+npm run build
+```
+
+Vite writes the production output to `dist/`.
+
+## 2. Zip the contents of dist
+
+```bash
+cd dist
+zip -r ../vue-vite.zip .
+```
+
+The archive should unzip so `index.html` is at the top level.
+
+## 3. Upload from the dashboard
+
+1. Open `/dashboard/deploy`
+2. Choose `Vue Vite`
+3. Pick your subdomain
+4. Upload `vue-vite.zip`
+5. Wait for the app to go live
+
+## Expected archive layout
+
+```text
+index.html
+assets/...
+```
+
+## Best fit
+
+Use hosted deployment for:
+
+- Vue Vite SPAs
+- marketing sites
+- frontend apps that do not need a separate live server process
+
+## When to use a tunnel instead
+
+Use a normal Mekong tunnel when:
+
+- you want to expose your local Vite dev server
+- you need HMR during development
+- your app depends on another local service while developing
+
+For live local development, see the [Vite tunnel guide](/docs/node/vite).

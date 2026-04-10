@@ -1,0 +1,36 @@
+---
+title: Deploy PHP / Laravel
+description: Run Laravel or another PHP backend locally and expose it with Mekong on the PHP server port.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy PHP / Laravel
+
+For a live PHP backend running on your machine, use a normal Mekong tunnel.
+
+<Callout type="info">
+This page is for exposing a running PHP backend. If you want the dashboard upload template for a packaged PHP archive, see [Deploy PHP](/docs/deployments/php).
+</Callout>
+
+## Laravel built-in server
+
+```bash
+php artisan serve --host=127.0.0.1 --port=8000
+mekong 8000
+```
+
+## Other PHP servers
+
+```bash
+# PHP built-in server
+php -S 127.0.0.1:8000 -t public
+mekong 8000
+```
+
+## Works well for
+
+- Laravel
+- Symfony
+- WordPress local installs
+- custom PHP apps running on a local port

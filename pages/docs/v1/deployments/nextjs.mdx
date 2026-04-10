@@ -1,79 +1,92 @@
 ---
 title: Deploy Next.js
-description: Use hosted deployment for static-exported Next.js apps, or a normal Mekong tunnel for SSR.
+description: Package the standalone Next.js build output and upload it with the Next.js deployment template.
 ---
 
 import { Callout } from 'nextra/components'
 
 # Deploy Next.js
 
-Next.js can be uploaded to Mekong hosted deployment only when the app is exported as static files.
+Use the `Next.js` template in the dashboard when your app is packaged as a standalone Next.js build.
 
-<Callout type="warning">
-Server-rendered Next.js is not part of the hosted deployment runtime. If your app uses SSR, API routes, route handlers, or server actions, run the app yourself and expose it with a normal Mekong tunnel.
+<Callout type="info">
+This guide is for full Next.js app uploads. If your project is mostly API routes or route handlers, see [Deploy Next.js API](/docs/deployments/nextjs-api).
 </Callout>
 
-## Static export workflow
+## 1. Enable standalone output
 
-Configure your app for static export in `next.config.js` or `next.config.mjs`:
+Configure your app so the build writes a standalone server bundle:
 
 ```js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: 'standalone',
 }
 
 export default nextConfig
 ```
 
-Build the project:
+## 2. Build the project
 
 ```bash
 npm run build
 ```
 
-Next.js writes the exported site to `out/`. Upload that folder:
+## 3. Copy runtime assets into the standalone folder
+
+Next.js expects `public/` and `.next/static/` to be available alongside the standalone server files:
 
 ```bash
-mekong deploy ./out
+cp -R public .next/standalone/public
+mkdir -p .next/standalone/.next
+cp -R .next/static .next/standalone/.next/static
 ```
 
-## Dashboard upload
+## 4. Zip the standalone root
 
-1. Enable static export
+```bash
+cd .next/standalone
+zip -r ../../nextjs-app.zip .
+```
+
+Upload `nextjs-app.zip` with the `Next.js` template in `/dashboard/deploy`.
+
+## Expected archive root
+
+After unzip, the archive should contain the standalone server root itself, for example:
+
+```text
+server.js
+package.json
+public/...
+.next/static/...
+```
+
+## Dashboard flow
+
+1. Set `output: 'standalone'`
 2. Run `npm run build`
-3. Zip the `out/` folder
-4. Upload it from `/dashboard/deploy`
+3. Copy `public/` and `.next/static/` into `.next/standalone`
+4. Zip the contents of `.next/standalone`
+5. Open `/dashboard/deploy`
+6. Choose the `Next.js` template
+7. Upload the archive and pick a subdomain
 
-## What works in hosted deployment
+## Best fit
 
-- static pages
-- static assets
-- client-side React behavior in the exported site
+Use the Next.js template for:
 
-## What does not work in hosted deployment
+- full Next.js applications
+- SSR pages
+- server components
+- frontend apps that still need the Next runtime
 
-- SSR
-- API routes
-- route handlers
-- server actions
-- any runtime that expects a Node.js server process
+## When to use a tunnel instead
 
-## Use a tunnel for full Next.js runtime
+Use a normal Mekong tunnel when:
 
-For full Next.js behavior:
+- you are still developing locally with HMR
+- you want your local dev server exposed directly
+- you need live debugging against your own machine
 
-```bash
-npm run dev
-mekong 3000
-```
-
-Or run the production server yourself and expose that port:
-
-```bash
-npm run build
-npm run start
-mekong 3000
-```
-
-See the full [Next.js tunnel guide](/docs/node/nextjs) for development-focused setup.
+For development-focused setup, see the [Next.js tunnel guide](/docs/node/nextjs).

@@ -1,35 +1,120 @@
 ---
 title: Deployment
-description: Upload built files to Mekong hosted deployments, or use a tunnel when your app needs a runtime.
+description: Package the right build output for Mekong hosted deployments, with stack-specific guides for static, Next.js, and PHP uploads.
 ---
 
 import { Callout } from 'nextra/components'
 
 # Deployment
 
-Mekong hosted deployment lets you upload prebuilt files and keep the site online without leaving your machine running.
+Mekong hosted deployment lets you upload a prepared archive and keep the app online without leaving your own machine running.
 
-This section is split by stack so the sidebar shows the deployment guides directly:
+The dashboard keeps the flow simple:
+
+1. Choose a stack template
+2. Prepare the correct build output
+3. Zip that output
+4. Upload it from `/dashboard/deploy`
+5. Go live on your Mekong subdomain
+
+Use the pages below based on whether you are shipping a frontend upload or exposing a backend server.
+
+## Frontend
+
+Use the dashboard upload flow for built frontend assets or packaged app archives:
 
 - [index.html](/docs/deployments/index-html)
 - [React.js](/docs/deployments/reactjs)
+- [Vue Vite](/docs/deployments/vue-vite)
 - [Next.js](/docs/deployments/nextjs)
+- [Next.js API](/docs/deployments/nextjs-api)
 - [PHP](/docs/deployments/php)
-- [Spring Boot](/docs/deployments/spring-boot)
 
-<Callout type="warning">
-Hosted deployment is currently static-file hosting. Upload built files such as `index.html`, `dist/`, `build/`, or `out/`. Mekong does not execute PHP or run a Spring Boot JAR in the hosted deployment path today.
+## Backend
+
+Use a normal Mekong tunnel when the backend is running on your local computer or server:
+
+- [Backend](/docs/deployments/backend)
+- [Go](/docs/deployments/go)
+- [FastAPI](/docs/deployments/fastapi)
+- [PHP / Laravel](/docs/deployments/php-laravel)
+- [ASP.NET](/docs/deployments/aspnet)
+- [Spring Boot](/docs/deployments/spring-boot)
+- [Express / Fastify](/docs/deployments/express-fastify)
+
+<Callout type="info">
+The dashboard template names map into the deploy runtimes used by the uploader:
+
+- `static` for plain HTML, React, React Vite, and Vue Vite
+- `nextjs` for Next.js apps and Next.js API projects
+- `php` for PHP app archives
 </Callout>
 
-## What works today
+## Frontend upload templates
 
-| Stack | Hosted upload | What to upload |
+| Stack | Template | Upload this |
 |------|------|------|
-| Plain HTML / CSS / JS | Yes | A zip with `index.html` at the archive root |
-| React.js | Yes | Your built `dist/` or `build/` output |
-| Next.js | Yes, static export only | The generated `out/` folder |
-| PHP | No runtime support | Use a normal Mekong tunnel |
-| Spring Boot | No runtime support | Run the JAR yourself and tunnel the app port |
+| Plain HTML / CSS / JS | `static` | Archive root contains `index.html` |
+| React Classic | `static` | The contents of `build/` |
+| React Vite | `static` | The contents of `dist/` |
+| Vue Vite | `static` | The contents of `dist/` |
+| Next.js app | `nextjs` | Prepared standalone server root |
+| Next.js API project | `nextjs` | Prepared standalone server root |
+| PHP | `php` | Runtime-ready app root with `index.php` |
+
+## Backend over tunnel
+
+| Stack | Run locally | Expose with |
+|------|------|------|
+| Go | `go run main.go` | `mekong 8080` |
+| FastAPI | `uvicorn main:app --port 8000` | `mekong 8000` |
+| PHP / Laravel | `php artisan serve --port=8000` | `mekong 8000` |
+| ASP.NET | `dotnet run` | `mekong 5000` |
+| Spring Boot | `java -jar target/app.jar` | `mekong 8080` |
+| Express / Fastify | `node server.js` | `mekong 3000` |
+
+## General archive rules
+
+- Upload the final built output, not the source repository
+- Keep the expected entry files at the archive root after unzip
+- Include runtime dependencies when the selected template needs them
+- Use the per-stack pages above if you are unsure about folder layout
+
+## Backend apps over tunnel
+
+Backend apps are also supported, but they usually use a normal Mekong tunnel instead of the dashboard upload flow.
+
+If your backend listens on a local port, Mekong can expose it from your machine. This includes:
+
+- Spring Boot
+- Go servers
+- FastAPI
+- Flask
+- PHP / Laravel
+- ASP.NET
+- Express / Fastify
+- other HTTP servers that bind to a port
+
+Typical backend flow:
+
+```bash
+# Start your backend locally
+your-backend-command
+
+# Expose the local port
+mekong 8080
+```
+
+You can also split frontend and backend:
+
+- upload the frontend build through `/dashboard/deploy`
+- run the backend locally or on your own VM
+- expose the backend port with Mekong
+
+This gives you a clean split:
+
+- **Frontend** stays online through dashboard deploy
+- **Backend** stays live through a normal Mekong tunnel
 
 ## Dashboard flow
 
@@ -51,6 +136,8 @@ mekong deploy stop my-site
 
 The CLI zips the directory, uploads it, and prints the live URL when it is ready.
 
+The CLI is best for static directories like `dist/` or `build/`. For runtime-oriented templates such as Next.js and PHP, package the exact folder structure described in the stack guides before upload.
+
 ## Public URL
 
 Hosted deployments are served from:
@@ -59,24 +146,19 @@ Hosted deployments are served from:
 https://<subdomain>.proxy.mekongtunnel.dev
 ```
 
-## Plan requirement
-
-Hosted deployments currently require a paid plan:
-
-- `student`
-- `pro`
-- `org`
-
-## Choose the right path
+## When to use hosted deployment
 
 Use hosted deployment when:
 
-- you already have static output
+- you already have the final output files prepared
 - you want the site to stay online after your laptop disconnects
 - you want a simple zip upload flow
 
 Use a normal tunnel when:
 
-- your app needs server-side code execution
-- you need PHP, Java, or another long-running runtime
-- you want requests to hit your live local dev server
+- you want to expose a local dev server directly
+- you want requests to hit your machine in real time
+- you are still in active local development
+- you are running a backend locally and just want to expose its port
+
+For stack-specific packaging steps, continue into the frontend or backend guides in the sidebar.

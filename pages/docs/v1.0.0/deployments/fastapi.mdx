@@ -1,0 +1,34 @@
+---
+title: Deploy FastAPI
+description: Run your FastAPI server locally and expose it with Mekong on its local port.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy FastAPI
+
+FastAPI is supported through a normal Mekong tunnel. Start the ASGI server locally, then expose the port.
+
+<Callout type="info">
+If you want deeper Python-specific examples, also see the main [FastAPI](/docs/python/fastapi) guide.
+</Callout>
+
+## Basic flow
+
+```bash
+uvicorn main:app --host 0.0.0.0 --port 8000
+mekong 8000
+```
+
+## Works well for
+
+- FastAPI APIs
+- webhook receivers
+- backend services behind a deployed frontend
+- local development on real public URLs
+
+## Frontend + backend split
+
+- deploy the frontend build through `/dashboard/deploy`
+- run FastAPI locally or on your own server
+- expose the API with `mekong 8000`

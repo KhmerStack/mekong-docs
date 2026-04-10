@@ -1,0 +1,38 @@
+---
+title: Deploy ASP.NET
+description: Run your ASP.NET backend locally and expose it with Mekong on the application port.
+---
+
+import { Callout } from 'nextra/components'
+
+# Deploy ASP.NET
+
+ASP.NET backends work by running the app locally and tunneling the port with Mekong.
+
+<Callout type="info">
+This applies to ASP.NET Core APIs, MVC apps, minimal APIs, and similar .NET web servers.
+</Callout>
+
+## Basic flow
+
+```bash
+dotnet run
+mekong 5000
+```
+
+If your app runs on another port, expose that port instead.
+
+## Common setup
+
+```bash
+dotnet run --urls http://0.0.0.0:5000
+mekong 5000
+```
+
+## Best fit
+
+Use this when:
+
+- your ASP.NET app should keep running as a live backend
+- you need public API/webhook access
+- the frontend is separate from the backend process
