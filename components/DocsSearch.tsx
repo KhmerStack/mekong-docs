@@ -581,8 +581,8 @@ export default function DocsSearch({ className }: SearchProps) {
   }
 
   return (
-    <div ref={rootRef} className={cn('docs-search-wrapper nextra-search hidden md:block', className)}>
-      <div className="docs-search-shell relative w-full">
+    <div ref={rootRef} className={cn('docs-search-wrapper !block hidden md:block', className)}>
+      <div className="docs-search-shell relative">
         <SearchIcon className="pointer-events-none absolute left-4 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           ref={inputRef}
@@ -613,7 +613,7 @@ export default function DocsSearch({ className }: SearchProps) {
         </kbd>
 
         {open ? (
-          <div className="docs-search-panel absolute left-1/2 top-full z-30 mt-3 w-full -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-background shadow-2xl">
+          <div className="docs-search-panel absolute left-1/2 top-full z-30 mt-3 w-full -translate-x-1/2 overflow-hidden rounded-2xl border border-border bg-background shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
             {/* Version scope indicator */}
             <div className="flex items-center gap-2 border-b border-border px-4 py-2 text-xs text-muted-foreground">
               <span>{isAllVersions ? 'Searching all versions' : `Searching in`}</span>
@@ -628,7 +628,7 @@ export default function DocsSearch({ className }: SearchProps) {
             ) : deferredQuery && results.length === 0 ? (
               <div className="p-8 text-center text-sm text-muted-foreground">No results found.</div>
             ) : deferredQuery ? (
-              <ul className="max-h-[24rem] overflow-y-auto p-2">
+              <ul className="max-h-[24rem] overflow-y-auto p-2" onPointerDown={e => e.preventDefault()}>
                 {results.map((result, index) => (
                   <li key={result.id}>
                     <Link

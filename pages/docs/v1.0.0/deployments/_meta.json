@@ -19,7 +19,6 @@
   "fastapi": "FastAPI",
   "php-laravel": "PHP / Laravel",
   "aspnet": "ASP.NET",
-  "spring-boot": "Spring Boot"
-  ,
+  "spring-boot": "Spring Boot",
   "express-fastify": "Express / Fastify"
 }
