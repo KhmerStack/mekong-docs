@@ -1,62 +1,76 @@
 ---
 title: Deploy React.js
-description: Build your React app and upload the static output to Mekong hosted deployments.
+description: Build React Classic or React Vite, then upload only the compiled output to Mekong hosted deployments.
 ---
 
 import { Callout } from 'nextra/components'
 
 # Deploy React.js
 
-React apps work well with Mekong hosted deployment as long as you upload the built static output instead of the source project.
+React apps fit Mekong hosted deployment well when you upload the compiled frontend output instead of the raw source project.
 
 <Callout type="info">
-Upload the build output folder, not your full source repository. Common output folders are `dist/` for Vite and `build/` for Create React App.
+Use the `static` template in the dashboard for both React Classic and React Vite.
 </Callout>
 
-## Vite React
+## React Vite
 
-Build the app:
-
-```bash
-npm run build
-```
-
-Vite writes the production files to `dist/`. Upload that folder:
-
-```bash
-mekong deploy ./dist
-```
-
-## Create React App
-
-Build the app:
+Build the app so Vite creates `dist/`:
 
 ```bash
 npm run build
 ```
 
-Create React App writes the production files to `build/`. Upload that folder:
+Zip the contents inside `dist/`, not the parent folder:
 
 ```bash
-mekong deploy ./build
+cd dist
+zip -r ../react-vite.zip .
 ```
 
-## Dashboard upload
+Upload `react-vite.zip` with the `React Vite` template in `/dashboard/deploy`.
 
-If you prefer the dashboard:
+## React Classic
+
+For Create React App or older React setups that compile into `build/`:
+
+```bash
+npm run build
+cd build
+zip -r ../react-classic.zip .
+```
+
+Upload `react-classic.zip` with the `React Classic` template in `/dashboard/deploy`.
+
+## What the archive should look like
+
+After unzip, the archive root should look like this:
+
+```text
+index.html
+assets/...
+static/...
+```
+
+The important part is that `index.html` is directly at the top level of the archive.
+
+## Dashboard flow
 
 1. Run the production build
-2. Zip `dist/` or `build/`
+2. Zip only the generated output folder contents
 3. Open `/dashboard/deploy`
-4. Upload the zip and wait for the live URL
+4. Choose `React Classic` or `React Vite`
+5. Upload the archive and choose your subdomain
+6. Wait for the live URL
 
-## What is supported
+## Best fit
 
 Hosted deployment works well for:
 
 - single-page React apps
 - static marketing sites
 - React builds produced by Vite or Create React App
+- frontend-only dashboards and admin panels
 
 ## When to use a tunnel instead
 

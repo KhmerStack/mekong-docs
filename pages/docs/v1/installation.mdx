@@ -9,18 +9,20 @@ import { Callout, Cards, Card } from 'nextra/components'
 
 ## One-liner install (recommended)
 
+The install scripts download the latest release automatically. Current release: `v1.6.1`.
+
 ### macOS and Linux
 
 ```bash
-curl -fsSL https://angkorsearch.dev/install.sh | sh
+curl -fsSL https://mekongtunnel.dev/install.sh | sh
 ```
 
-Detects your OS and architecture automatically (macOS Apple Silicon, macOS Intel, Linux amd64, Linux arm64). Installs to `/usr/local/bin` or `~/.local/bin`, removes macOS Gatekeeper quarantine, and adds to `PATH` if needed.
+Detects your OS and architecture automatically: macOS Apple Silicon, macOS Intel, Linux amd64, and Linux arm64. Installs to `/usr/local/bin` or `~/.local/bin`, removes macOS Gatekeeper quarantine, and adds to `PATH` if needed.
 
 ### Windows (PowerShell)
 
 ```powershell
-irm https://angkorsearch.dev/install.ps1 | iex
+irm https://mekongtunnel.dev/install.ps1 | iex
 ```
 
 Detects amd64 or arm64, downloads the binary, unblocks it from Windows SmartScreen, and adds to your user `PATH`.
@@ -34,37 +36,7 @@ mekong 3000
 
 ---
 
-## Manual install (Linux & Windows)
-
-### Linux — amd64
-
-```bash
-sudo curl -L https://github.com/MuyleangIng/MekongTunnel/releases/download/v1.5.0/mekong-linux-amd64 -o /usr/local/bin/mekong
-sudo chmod +x /usr/local/bin/mekong
-mekong 3000
-```
-
-### Linux — arm64
-
-```bash
-sudo curl -L https://github.com/MuyleangIng/MekongTunnel/releases/download/v1.5.0/mekong-linux-arm64 -o /usr/local/bin/mekong
-sudo chmod +x /usr/local/bin/mekong
-mekong 3000
-```
-
-### Windows (manual)
-
-1. Download [`mekong-windows-amd64.exe`](https://github.com/MuyleangIng/MekongTunnel/releases/download/v1.5.0/mekong-windows-amd64.exe) (or `arm64`)
-2. Rename it to `mekong.exe`
-3. Move it to a directory in your `PATH` (e.g. `C:\Users\YourName\bin`)
-4. Right-click → **Properties** → check **Unblock** → click **OK**
-5. Open a terminal and run `mekong 3000`
-
-<Callout type="warning">
-Windows SmartScreen may block the file on first run. The PowerShell one-liner (`install.ps1`) handles this automatically via `Unblock-File`.
-</Callout>
-
-### Build from source (Go 1.24+)
+## Build from source (Go 1.24+)
 
 ```bash
 go install muyleanging.com/mekongtunnel/cmd/mekong@latest
@@ -118,23 +90,27 @@ Skip the CLI entirely and use the `ssh` command you already have.
 
 ```bash
 # Anonymous
-ssh -t -R 80:localhost:3000 proxy.angkorsearch.dev
+ssh -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # With token (reserved subdomain)
 ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
-    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+    -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # With expiry
 ssh -o SetEnv=MEKONG_EXPIRE=48h \
-    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+    -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # Both at once
 ssh -o SendEnv="MEKONG_API_TOKEN MEKONG_EXPIRE" \
     -o SetEnv="MEKONG_API_TOKEN=mkt_xxx MEKONG_EXPIRE=48h" \
-    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+    -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 ```
 
 Replace `3000` with your local port. The `-t` flag is required, or the server cannot display your tunnel URL. If you want extra keep-alive protection, add `-o ServerAliveInterval=60 -o ServerAliveCountMax=3`.
+
+<Callout type="warning">
+The PowerShell one-liner handles Windows unblocking automatically. Prefer the installer scripts unless you specifically need a custom source build.
+</Callout>
 
 ---
 

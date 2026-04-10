@@ -1,0 +1,112 @@
+---
+title: Backend
+description: Expose backend servers from your local computer with Mekong by tunneling the port they listen on.
+---
+
+import { Callout } from 'nextra/components'
+
+# Backend
+
+Backend apps are supported by running them locally or on your own server, then exposing the port with Mekong.
+
+If the backend listens on a port, Mekong can expose it.
+
+This includes:
+
+- Go
+- FastAPI
+- Flask
+- Django
+- PHP / Laravel
+- ASP.NET
+- Spring Boot
+- Express / Fastify
+- and other HTTP servers
+
+<Callout type="info">
+Backend support is not limited to one framework. Mekong does not care whether the server is written in Go, Java, Python, PHP, Node.js, or .NET. The important part is the port.
+</Callout>
+
+## Simple backend flow
+
+1. Start your backend locally
+2. Find the port it listens on
+3. Run `mekong <port>`
+4. Use the public URL
+
+Example:
+
+```bash
+# Start your app however your framework expects
+your-backend-command
+
+# Expose the port
+mekong 8080
+```
+
+## Common backend examples
+
+```bash
+# Go
+go run main.go
+mekong 8080
+
+# FastAPI
+uvicorn main:app --host 0.0.0.0 --port 8000
+mekong 8000
+
+# Flask
+flask run --host=0.0.0.0 --port=5000
+mekong 5000
+
+# Laravel
+php artisan serve --host=127.0.0.1 --port=8000
+mekong 8000
+
+# ASP.NET
+dotnet run
+mekong 5000
+
+# Spring Boot
+java -jar target/app.jar
+mekong 8080
+
+# Express
+node server.js
+mekong 3000
+```
+
+## Frontend + backend split
+
+You can split your app into two clean parts:
+
+- **Frontend**: upload the built frontend through `/dashboard/deploy`
+- **Backend**: run the API locally or on your own VM and expose it with Mekong
+
+Example split:
+
+```text
+Frontend: React / Vue / static app
+Backend: Go / FastAPI / Laravel / ASP.NET / Spring Boot
+```
+
+That setup is useful when:
+
+- the frontend is stable and should stay online
+- the backend still needs live code execution
+- you want to expose a local API quickly
+
+## When to use backend tunnel instead of dashboard deploy
+
+Use a normal Mekong tunnel when:
+
+- the app should run from your computer
+- the backend needs live execution
+- you are testing APIs, webhooks, or callbacks
+- you want requests to hit the running local process directly
+
+For stack-specific examples, see:
+
+- [Express / Fastify](/docs/node/express)
+- [FastAPI](/docs/python/fastapi)
+- [Spring Boot](/docs/deployments/spring-boot)

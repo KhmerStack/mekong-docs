@@ -1,53 +1,68 @@
 ---
 title: Deploy PHP
-description: Hosted deployments do not execute PHP today; use a Mekong tunnel for Laravel, WordPress, and other PHP apps.
+description: Package a runtime-ready PHP app archive with index.php and dependencies included.
 ---
 
 import { Callout } from 'nextra/components'
 
 # Deploy PHP
 
-PHP is not supported in Mekong hosted deployment today.
+Use the `PHP` template in the dashboard when your upload is a runtime-ready PHP app archive.
 
-<Callout type="warning">
-Uploading `.php` files to hosted deployment will not start a PHP runtime. Mekong hosted deployment currently serves static files only.
+<Callout type="info">
+This is the right path for Laravel-style apps, WordPress-style apps, and custom PHP projects, as long as the archive already contains the files the runtime needs.
 </Callout>
 
-## What to do instead
+## 1. Install production dependencies
 
-Run your PHP app locally or on your own server, then expose that running app with a normal Mekong tunnel.
-
-## Laravel built-in server
+For Composer-based apps:
 
 ```bash
-php artisan serve --host=127.0.0.1 --port=8000
-mekong 8000
+composer install --no-dev --optimize-autoloader
 ```
 
-## Apache virtual host
+## 2. Prepare the runtime root
 
-For Laragon, XAMPP, or WAMP-style setups, pass the upstream host so the app receives the expected `Host` header:
+The archive should unzip with your app root directly at the top level. For example:
+
+```text
+index.php
+vendor/...
+public/...
+app/...
+bootstrap/...
+```
+
+If your framework expects a specific public document root, package the exact folder structure your deployment runtime needs.
+
+## 3. Zip the app root
 
 ```bash
-mekong 80 --upstream-host myapp.test
-mekong init --port 80 --upstream-host myapp.test
+zip -r php-app.zip . -x ".git/*" "node_modules/*"
 ```
 
-## WordPress
+Upload `php-app.zip` with the `PHP` template in `/dashboard/deploy`.
 
-```bash
-mekong 80 --upstream-host wordpress.test
-```
+## Best fit
 
-## If you only have static output
+Use the PHP template for:
 
-If your PHP project generates a pure static export, upload the generated HTML, CSS, and JS files instead of the PHP source itself. In that case, follow the [`index.html`](/docs/deployments/index-html) guide.
+- Laravel-style apps
+- WordPress-style PHP archives
+- custom PHP frameworks
+- PHP projects that need server-side execution
 
-## Best fit for PHP
+## Packaging checklist
 
-Use a tunnel when you need:
+- keep `index.php` in the correct runtime root
+- include `vendor/` if the app depends on Composer packages
+- exclude development-only folders such as `.git/` and `node_modules/`
+- upload the finished runtime archive, not the source checkout
 
-- Laravel or Symfony routing
-- WordPress or other CMS logic
-- sessions, auth, or database calls
-- any executable PHP code
+## When to use a tunnel instead
+
+Use a normal Mekong tunnel when:
+
+- you want to expose your local dev server directly
+- you are still iterating locally with live changes
+- your deploy target should hit the machine you are currently developing on

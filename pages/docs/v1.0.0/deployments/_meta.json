@@ -1,8 +1,11 @@
 {
   "index": "Overview",
+  "backend": "Backend",
   "index-html": "index.html",
   "reactjs": "React.js",
+  "vue-vite": "Vue Vite",
   "nextjs": "Next.js",
+  "nextjs-api": "Next.js API",
   "php": "PHP",
   "spring-boot": "Spring Boot"
 }

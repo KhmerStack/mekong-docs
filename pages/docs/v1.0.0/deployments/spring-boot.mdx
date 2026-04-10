@@ -1,19 +1,46 @@
 ---
 title: Deploy Spring Boot
-description: Hosted deployments do not run a Spring Boot JAR today; build and run the JAR yourself, then expose it with Mekong.
+description: Spring Boot and other backend servers are supported by running them locally and exposing their port with Mekong.
 ---
 
 import { Callout } from 'nextra/components'
 
 # Deploy Spring Boot
 
-Spring Boot JAR uploads are not supported in Mekong hosted deployment today.
+Spring Boot should be run on your own machine or server, then exposed with Mekong on its local port.
 
-<Callout type="warning">
-Hosted deployment does not start a Java runtime for uploaded artifacts. If you upload a `.jar`, it will not boot your application. Run the Spring Boot app yourself and tunnel the port instead.
+This is also the general rule for backend apps in MekongTunnel:
+
+- Spring Boot
+- Go servers
+- FastAPI
+- Flask
+- PHP / Laravel
+- ASP.NET
+- Express / Fastify
+- any other backend that listens on an HTTP port
+
+<Callout type="info">
+Backend support is not limited to Spring Boot. If the app starts a server on a port like `8080`, `8000`, `3000`, or `5000`, Mekong can expose that port from your local computer.
 </Callout>
 
-## Maven workflow
+## Backend + frontend split
+
+You can split the app into two parts:
+
+- **Frontend**: upload a built static frontend through `/dashboard/deploy`
+- **Backend**: run the backend locally or on your own VM, then expose its port with `mekong <port>`
+
+Example split:
+
+```text
+Frontend: React / Vue / static site
+Backend: Spring Boot / Go / FastAPI / PHP / ASP.NET
+```
+
+In that setup, the frontend can stay hosted online while the backend is exposed from the running server where the API lives.
+
+## Spring Boot Maven workflow
 
 Build the JAR:
 
@@ -33,7 +60,7 @@ Expose the running app:
 mekong 8080
 ```
 
-## Gradle workflow
+## Spring Boot Gradle workflow
 
 Build the JAR:
 
@@ -53,6 +80,30 @@ Expose the running app:
 mekong 8080
 ```
 
+## Other backend examples
+
+The same pattern works for many other stacks:
+
+```bash
+# Go
+go run main.go
+mekong 8080
+
+# FastAPI
+uvicorn main:app --host 0.0.0.0 --port 8000
+mekong 8000
+
+# PHP / Laravel
+php artisan serve --host=127.0.0.1 --port=8000
+mekong 8000
+
+# ASP.NET
+dotnet run
+mekong 5000
+```
+
+The exact framework does not matter. The only important part is the local port your backend is listening on.
+
 ## Optional one-time project setup
 
 Save the default port and start command in `.mekong.json`:
@@ -63,6 +114,13 @@ mekong init --port 8080 --start "java -jar target/app.jar"
 
 After that, plain `mekong` can reuse the saved settings.
 
-## If your project has a static frontend
+## When to use dashboard deploy instead
 
-If the deployable part is only static frontend assets, upload those built files instead of the JAR. Otherwise, use a normal tunnel for the running Spring Boot server.
+Use `/dashboard/deploy` when you already have a packaged frontend or app archive ready to upload.
+
+Use a normal tunnel when:
+
+- the app should run from your local machine
+- the backend needs live code execution
+- you want to expose your dev server directly
+- you are testing APIs, webhooks, or local services
