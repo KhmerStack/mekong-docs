@@ -202,7 +202,7 @@ mekong 3000
 
 # Login once, then always use reserved subdomain
 mekong login
-mekong 3000                                      # → https://myapp.proxy.angkorsearch.dev
+mekong 3000                                      # → https://myapp.proxy.mekongtunnel.dev
 
 # One-shot token without logging in
 mekong --token mkt_xxxxxxxxxxxx 3000
@@ -261,8 +261,8 @@ mekong ps
 
 ```
 TUNNEL ID                URL                                              PORT      STATUS       CREATED            EXPIRE
-onlyanime                https://onlyanime.proxy.angkorsearch.dev         :3001     Up 5h        5 hours ago        18h left
-topupml                  https://topupml.proxy.angkorsearch.dev           :3000     Up 2h        2 hours ago        6d left
+onlyanime                https://onlyanime.proxy.mekongtunnel.dev         :3001     Up 5h        5 hours ago        18h left
+topupml                  https://topupml.proxy.mekongtunnel.dev           :3000     Up 2h        2 hours ago        6d left
 ```
 
 Stale state files from dead processes are automatically cleaned up when `mekong ps` runs.
@@ -333,7 +333,7 @@ mekong login
 
 ```
   Open this URL to log in:
-  https://angkorsearch.dev/cli-auth?session=xxxxxxxx
+  https://mekongtunnel.dev/cli-auth?session=xxxxxxxx
 
   Waiting for authorization.....
   ✔  Logged in as you@example.com
@@ -452,7 +452,7 @@ mekong status 3000          # filter by port
   ─────────────────────────────────────────────────────
   Active tunnels
   ─────────────────────────────────────────────────────
-  URL        https://onlyanime.proxy.angkorsearch.dev
+  URL        https://onlyanime.proxy.mekongtunnel.dev
   Local      localhost:3001
   PID        48291
   Uptime     5h12m3s
@@ -510,19 +510,19 @@ Use `ssh` directly if you prefer not to install the binary:
 
 ```bash
 # Anonymous
-ssh -t -R 80:localhost:3000 proxy.angkorsearch.dev
+ssh -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # With token (reserved subdomain)
 ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
-    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+    -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # With expiry
-ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 proxy.angkorsearch.dev
+ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # Both at once
 ssh -o SendEnv="MEKONG_API_TOKEN MEKONG_EXPIRE" \
     -o SetEnv="MEKONG_API_TOKEN=mkt_xxx MEKONG_EXPIRE=48h" \
-    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+    -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 ```
 
 > The `-t` flag is required. Without it the server cannot display the URL.

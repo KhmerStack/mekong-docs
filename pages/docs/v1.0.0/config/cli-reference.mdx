@@ -30,6 +30,7 @@ mekong detect [--json]
 mekong init [--port N] [--start CMD] [--upstream-host HOST]
 mekong doctor [domain]
 mekong update
+mekong uninstall
 mekong version
 ```
 
@@ -77,7 +78,8 @@ mekong --token mkt_xxx 3000          # one-shot token override
 | `mekong rm -f <name>` | Clear logs for one specific named reserved tunnel |
 | `mekong stop <port>` | Stop one running background tunnel |
 | `mekong stop --all` | Stop all running background tunnels |
-| `mekong update` | Auto-update to the latest release |
+| `mekong update` | Auto-update to the latest release (auto-retries with `sudo` on protected paths) |
+| `mekong uninstall` | Remove the `mekong` binary, config directory, and PATH entry |
 | `mekong version` | Show installed version |
 | `mekong completion [zsh\|bash]` | Print shell tab-completion script |
 
@@ -202,7 +204,7 @@ mekong 3000
 
 # Login once, then always use reserved subdomain
 mekong login
-mekong 3000                                      # → https://myapp.proxy.angkorsearch.dev
+mekong 3000                                      # → https://myapp.proxy.mekongtunnel.dev
 
 # One-shot token without logging in
 mekong --token mkt_xxxxxxxxxxxx 3000
@@ -247,6 +249,9 @@ mekong 3000 8080
 # Self-update
 mekong update
 mekong version
+
+# Uninstall
+mekong uninstall
 ```
 
 ---
@@ -261,8 +266,8 @@ mekong ps
 
 ```
 TUNNEL ID                URL                                              PORT      STATUS       CREATED            EXPIRE
-onlyanime                https://onlyanime.proxy.angkorsearch.dev         :3001     Up 5h        5 hours ago        18h left
-topupml                  https://topupml.proxy.angkorsearch.dev           :3000     Up 2h        2 hours ago        6d left
+onlyanime                https://onlyanime.proxy.mekongtunnel.dev         :3001     Up 5h        5 hours ago        18h left
+topupml                  https://topupml.proxy.mekongtunnel.dev           :3000     Up 2h        2 hours ago        6d left
 ```
 
 Stale state files from dead processes are automatically cleaned up when `mekong ps` runs.
@@ -290,6 +295,42 @@ mekong rm -f
 # Clear only the onlyanime tunnel's logs
 mekong rm -f onlyanime
 ```
+
+---
+
+## `mekong update`
+
+Downloads and installs the latest `mekong` release in place. On macOS and Linux, if the binary lives in a protected directory (e.g. `/usr/local/bin`), the update automatically retries with `sudo` — you may be prompted for your password.
+
+```bash
+mekong update
+# ✔  Updated mekong from v1.6.14 → v1.6.15
+```
+
+On Windows, because the running `.exe` is locked, the binary swap is scheduled via a hidden PowerShell script that runs after `mekong` exits and then opens a new terminal automatically.
+
+---
+
+## `mekong uninstall`
+
+Completely removes `mekong` from your machine:
+
+- Deletes the `mekong` binary (auto-retries with `sudo` on macOS/Linux if needed)
+- Removes the config directory `~/.mekong/`
+- On Linux/macOS: removes the `PATH` export line added by the installer from your shell RC file
+
+```bash
+mekong uninstall
+```
+
+```
+  ✔  Removed binary: /usr/local/bin/mekong
+  ✔  Removed config: /Users/you/.mekong
+  ✔  Removed PATH entry from ~/.zshrc
+  ✔  mekong uninstalled successfully
+```
+
+On Windows the binary and `%LOCALAPPDATA%\Programs\mekong\` directory are removed and the user `PATH` entry is cleaned up automatically.
 
 ---
 
@@ -333,7 +374,7 @@ mekong login
 
 ```
   Open this URL to log in:
-  https://angkorsearch.dev/cli-auth?session=xxxxxxxx
+  https://mekongtunnel.dev/cli-auth?session=xxxxxxxx
 
   Waiting for authorization.....
   ✔  Logged in as you@example.com
@@ -415,6 +456,7 @@ mekong -d 3000 -e 1w
 | `mekong sub` | `mekong subdomain` |
 | `mekong log` | `mekong logs` |
 | `mekong upd` | `mekong update` |
+| `mekong uni` | `mekong uninstall` |
 | `mekong who` | `mekong whoami` |
 | `mekong det` | `mekong detect` |
 | `mekong doc` | `mekong doctor` |
@@ -452,7 +494,7 @@ mekong status 3000          # filter by port
   ─────────────────────────────────────────────────────
   Active tunnels
   ─────────────────────────────────────────────────────
-  URL        https://onlyanime.proxy.angkorsearch.dev
+  URL        https://onlyanime.proxy.mekongtunnel.dev
   Local      localhost:3001
   PID        48291
   Uptime     5h12m3s
@@ -510,19 +552,19 @@ Use `ssh` directly if you prefer not to install the binary:
 
 ```bash
 # Anonymous
-ssh -t -R 80:localhost:3000 proxy.angkorsearch.dev
+ssh -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # With token (reserved subdomain)
 ssh -o SetEnv="MEKONG_API_TOKEN=mkt_xxxxxxxxxxxx" \
-    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+    -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # With expiry
-ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 proxy.angkorsearch.dev
+ssh -o SetEnv=MEKONG_EXPIRE=48h -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 
 # Both at once
 ssh -o SendEnv="MEKONG_API_TOKEN MEKONG_EXPIRE" \
     -o SetEnv="MEKONG_API_TOKEN=mkt_xxx MEKONG_EXPIRE=48h" \
-    -t -R 80:localhost:3000 proxy.angkorsearch.dev
+    -t -R 80:localhost:3000 proxy.mekongtunnel.dev
 ```
 
 > The `-t` flag is required. Without it the server cannot display the URL.
@@ -569,6 +611,11 @@ AUTH
   mekong login                     Sign in
   mekong logout                    Sign out
   mekong whoami                    Show current account
+
+MAINTENANCE
+  mekong update                    Update to latest release (auto-sudo on protected paths)
+  mekong uninstall                 Remove binary, config, and PATH entry
+  mekong version                   Show installed version
 
 ALIASES & SHORTCUTS
   sd   →  subdomain                dm   →  domain

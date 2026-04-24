@@ -20,13 +20,19 @@ You get:
 - Live HTTP request logs streamed to your terminal
 - Auto-reconnect if the connection drops
 
-**Current CLI highlights (v1.6.1):**
+**Current CLI highlights (v1.6.15):**
 - One-liner installers: `curl -fsSL https://mekongtunnel.dev/install.sh | sh` (macOS/Linux) and `irm https://mekongtunnel.dev/install.ps1 | iex` (Windows)
 - `mekong login` — authenticate via browser device flow, get a reserved subdomain
 - `mekong whoami` — show your account email and plan
 - `mekong test` — run a self-test to verify the tunnel is working
+- `mekong uninstall` — completely remove the CLI, config directory, and PATH entry
 - Windows arm64 support
 - VS Code extension with account/login panel
+
+**New in v1.6.6+:**
+- `mekong update` auto-retries with `sudo` on macOS/Linux when the binary is in a protected path (e.g. `/usr/local/bin`) — no more manual `sudo mekong update`
+- `mekong uninstall` also auto-retries with `sudo` on protected paths
+- Windows update schedules a binary swap via PowerShell after `mekong` exits — no Administrator needed
 
 **New in v1.4.6+:**
 - Daemon management: `mekong -d 3000`, `mekong logs`, `mekong logs -f`
